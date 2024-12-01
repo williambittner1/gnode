@@ -21,20 +21,28 @@ Clone this repository to your local machine:
 ```bash
 git clone https://github.com/your_username/your_repository.git
 cd your_repository
-
+```
 
 ### Step 2: Configure CUDA-11.7
 
 Check if CUDA-11.7 is installed:
 
+```bash
 ls /usr/local | grep cuda-11.7
 Ensure the bin and lib64 directories exist in /usr/local/cuda-11.7.
+```
 
 Add CUDA-11.7 to the PATH and LD_LIBRARY_PATH:
 
+```bash
 export PATH=/usr/local/cuda-11.7/bin:$PATH
 export LD_LIBRARY_PATH=/usr/local/cuda-11.7/lib64:$LD_LIBRARY_PATH
+```
+
 Verify the setup:
 
+```bash
 nvcc --version
+```
+
 The output should show Cuda compilation tools, release 11.7.
