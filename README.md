@@ -50,8 +50,8 @@ nvcc --version
 Create a Conda Environment:
 
 ```bash
-conda create --name my_project_env python=3.8 -y
-conda activate my_project_env
+conda create --name gnode python=3.8 -y
+conda activate gnode
 ```
 
 ### Step 4: Install Pytorch with CUDA-11.7
