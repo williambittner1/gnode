@@ -45,4 +45,21 @@ Verify the setup:
 nvcc --version
 ```
 
+### Step 3: Set Up Python Environment
+
+Create a Conda Environment:
+
+```bash
+conda create --name my_project_env python=3.8 -y
+conda activate my_project_env
+```
+
+### Step 4: Install Pytorch with CUDA-11.7
+
+Install PyTorch: Install the specific version of PyTorch compatible with CUDA-11.7:
+
+```bash
+conda install pytorch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 pytorch-cuda=11.7 -c pytorch -c nvidia
+```
+
 The output should show Cuda compilation tools, release 11.7.
