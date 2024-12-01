@@ -63,3 +63,12 @@ conda install pytorch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 pytorch-cuda=
 ```
 
 The output should show Cuda compilation tools, release 11.7.
+
+### Step 5: Install Gaussian Splatting Rasterizer
+
+```bash
+git clone <gaussian_splatting_directory>
+cd <gaussian_splatting_directory>
+pip install submodules/diff-gaussian-rasterization
+```
+pip install submodules/simple-knn
