@@ -22,7 +22,7 @@ wandb.init(project='multi-body-gnn', name='particle-dynamics-gnn')
 # ========================
 # Simulation Parameters
 # ========================
-NUM_PARTICLES = 6
+NUM_PARTICLES = 3
 INFLUENCE_RADIUS = 30.0  # Radius for connecting edges
 G = 1.00  # Gravitational constant
 TIME_STEP = 0.25  # Time step for the simulation

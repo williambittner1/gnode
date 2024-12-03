@@ -1,0 +1,8 @@
+matplotlib
+tqdm
+numpy
+plotly
+wandb
+jupyter
+torch-geometric
+torch-cluster
