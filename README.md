@@ -1,189 +1,355 @@
-# Comprehensive Project Layout with Latent Node and Edge Features
-
-This layout describes the complete pipeline for developing a **Graph Neural ODE (GNODE)** model for dynamic scene modeling, integrating latent node and edge features distilled from 2D foundational models like CLIP or DINO.
+# Objective
 
 ---
 
-## 1. Project Overview
+Train a model to learn the physics of object dynamics (falling and collisions) from multi-view video datasets. Use a Hierarchical Message Passing Graph Neural ODE (Hierarchical GNODE) to predict future 3D Gaussian parameters. At test time, the model should:
 
-### Objective
-- Learn the physics of dynamic 3D scenes from a multi-view dataset.
-- Use a **Graph Neural ODE (GNODE)** to predict future Gaussian parameters representing object states.
-- Incorporate latent features derived from 2D foundational models to enrich node and edge representations, improving model robustness and generalization.
-- At test time, interpolate and extrapolate object dynamics and generate novel views of the scene.
+- Interpolate or extrapolate the 3D scene in time.
+- Generate novel views of the scene.
 
----
+# **Model Overview**
 
-## 2. Project Components
-
-### 2.1 Input Data
-1. **Multi-View Video Data:**
-   - Calibrated multi-camera setup providing synchronized frames for each timestep.
-   - Includes simple object scenes involving falling, colliding, and interacting dynamics.
-
-2. **Precomputed Features:**
-   - **Optical Flow:** Capture motion between consecutive frames.
-   - **Ground Truth Gaussians:** Represent object states in each timestep with parameters such as:
-     - Position \((x, y, z)\)
-     - Velocity \((v_x, v_y, v_z)\)
-     - Covariance matrix or size/intensity descriptors.
-   - **Latent Features from Foundational Models:**
-     - Extract image embeddings for each frame using a 2D foundational model (e.g., CLIP, DINO).
-     - Distill object-level features (e.g., object embeddings, appearance features) for nodes.
-     - Distill pairwise features (e.g., relational or contextual features) for edges.
+## **1. Dataset:**
 
 ---
 
-### 2.2 Graph Representation
-1. **Nodes:**
-   - Represent Gaussian particles.
-   - Node features include:
-     - Gaussian parameters (position, velocity, size).
-     - Latent embeddings distilled from 2D models (object-level features).
-2. **Edges:**
-   - Capture relationships between particles.
-   - Edge features include:
-     - Relative positions, velocities.
-     - Latent features distilled from 2D models (relational/contextual features).
+- `num_sequences` sequences of a physically simulated scene with `num_timesteps` timesteps rendered/captured from multi-view.
+- Scenes:
+    - orbital dynamics (Blender, in-python simulation)
+    - double-pendulum (Blender)
+    - rigid-object interactions (Blender, Kubric Dataset Generator, in-python simulation)
+    - dice thrown (Blender, in-python simulation)
+- prepare dataset by 3DGS encoding each timestep separately to obtain the following per-timestep input data:
+    - multi-view rendering
+    - optical-flow from rendering
+    - pixel-wise semantic features from 2D foundational model
+    - Pseudo-GT 3D Gaussians (without temporal correspondences) obtained independently for each timestep from many (e.g. 100+) views with distilled features (from optical flow and 2D foundational model)
+
+## **2. Core Model:**
 
 ---
 
-### 2.3 Graph Neural ODE (GNODE)
-1. **Core Dynamics:**
-   - A message-passing mechanism updates node embeddings using information from neighbors.
-   - The GNODE models continuous-time dynamics as:
-     \[
-     \frac{d\mathbf{h}_i}{dt} = f_\theta(\mathbf{h}_i, \mathbf{h}_j, \mathbf{e}_{ij}, t)
-     \]
-     where:
-     - \(\mathbf{h}_i\): Node embedding for Gaussian \(i\), including latent features.
-     - \(f_\theta\): Neural network parameterizing the dynamics.
-2. **ODE Solver:**
-   - A differentiable ODE solver integrates the dynamics to predict future node states.
+### **Encoding Multi-View 2D Video Data to 3D Gaussians**
+
+2D multi-view image data is encoded (independently for every timestep for now) into 3D Gaussians with latent feature embeddings (distilled via a 2D Foundational Model) represented as a graph with node and edge attributes through the following steps:
+
+1. **Feature Extraction via 2D Foundation Models (in 2D image-space):**
+    - Use 2D foundational models such as CLIP, SAM, or DINO to extract frame-level semantic features.
+    - Extract object-level features (e.g., positions, sizes, and semantic labels) using object segmentation and detection models like SAM.
+    - Generate dense embeddings for each view, capturing both appearance and motion information.
+2. **Feature Distillation Across Views (2D images → 3D Gaussians)**
+    
+    Apply feature 3D Gaussian Splatting (Feature-3DGS) to distill 2D multi-view image features (semantic CLIP, SAM, DINO features or optical flow features) to 3D Gaussians with latent features. 
+    
+
+### **Hierarchical Graph Neural ODE**
+
+> The Hierarchical GNODE processes the graph using hierarchical message passing to model both local and global interactions. Predict Gaussians at the next timestep by solving and integrating (`torchdiffeq` ode-solver) the dynamics with a Hierarchical Graph Neural ODE framework.
+> 
+1. **Hierarchical Graph Construction (3D Gaussians → Hierarchical Graph)**
+    
+    <aside>
+    💡
+    
+    The **simple (non-hierarchical) graph** has:
+    
+    - **node attributes** represent a Gaussian particle**:**
+        - 3D-Position (derived from 3D Gaussian Splatting optimization)
+        - 3D-Velocity (derived from optical flow)
+        - Semantic/Latent features like mass, semantics,… **(**derived from learned embeddings e.g. via feature distillation as in Feature-3DGS from 2D Foundation Models like SAM)
+    - **edge attributes** model interactions between particles**:**
+        - pairwise distances,
+        - relative positions/velocities and
+        - relational features (such as rigidity or interaction strength derived from embeddings).
+    </aside>
+    
+    Hierarchical Graphs are constructed to organize nodes at different **levels of abstraction**:
+    
+    - **Level 1 (Micro):** Nodes represent individual particles (e.g., Gaussian parameters like position, velocity, and latent features).
+    - **Level 2 (Meso):** Abstract nodes group particles based on spatial or feature similarity (e.g., clustering particles within spatial regions or shared semantic features).
+    - **Level 3 (Macro):** High-level nodes aggregate meso-level representations, capturing global scene properties or dynamics.
+    
+    Connections between levels are represented as inter-level edges, while intra-level edges model interactions within the same level.
+    
+    <aside>
+    <img src="/icons/command-line_gray.svg" alt="/icons/command-line_gray.svg" width="40px" />
+    
+    **Construction Steps:**
+    
+    1. Clustering for Super Nodes:
+        - At each level, group lower-level nodes into super nodes using clustering algorithms (e.g., k-means in a hyper-space (scaled dimensions in 3d-space, 3d-velocity, nd-semantic/latent feature,…) or community detection like Louvain).
+        - Each super node aggregates features (e.g., mean or weighted pooling) from its member nodes.
+    2. Edge Creation:
+        - **Intra-Level Edges:** Connect nodes within the same level based on spatial proximity (in hyper-space) or similarity metrics.
+        - **Inter-Level Edges:** Connect nodes in lower levels to their corresponding super nodes in higher levels.
+    </aside>
+    
+2. **Hierarchical Message Passing Schemes** 
+    
+    Message passing alternates between three schemes: **Bottom-Up**, **Within-Level**, and **Top-Down**.
+    
+    - **Bottom-Up Propagation (Super Node Update)**
+        - Aggregates fine-grained information from lower-level nodes to higher-level super nodes.
+        - Captures detailed local interactions and transmits them to broader contexts.
+        - Update rule for a super node $s_i^t$ in level $t$:
+            
+            $$
+            \mathbf{h}_{s^t_i} = \text{Aggregate}\left(\{\mathbf{h}_{v^{t-1}_j} : v^{t-1}_j \in \text{group}(s^t_i)\}\right)
+            
+            $$
+            
+            where **`Aggregate`** can be mean, sum, or attention-based pooling.
+            
+    - **Within-Level Propagation (Node Update):**
+        - Applies flat GNN message passing within a single level.
+        - Update rule for a node $v_i$ at layer $l$:
+        
+        $$
+           \mathbf{h}_i^{(\ell+1)} = \sigma\left(W \cdot \text{Aggregate}\left(\{\mathbf{h}_j^{(\ell)} : j \in \mathcal{N}(i)\}\right)\right)
+        
+        $$
+        
+        - Performs flat GNN message passing within each level, allowing local interactions to refine node representations.
+    - **Top-Down Propagation (Node Update with Global Context):**
+        - Transmits global and meso-level information from higher-level super nodes to lower-level nodes.
+        - Enhances fine-grained node representations with global context.
+        - Update rule for a node $v_i^{t-1}$:
+        
+        $$
+           \mathbf{h}_{v^{t-1}_i} = \text{Combine}\left(\mathbf{h}_{v^{t-1}_i}, \mathbf{h}_{s^t_j} : s^t_j \in \text{parent}(v^{t-1}_i)\right)
+        
+        $$
+        
+
+1. **Temporal Dynamics (Node Embedding Evolution):**
+    
+    Temporal evolution of node representations is modeled with Graph Neural ODEs. The GNODE integrates hierarchical features over time to predict future states of Gaussian particles.
+    
+    $$
+       \frac{d\mathbf{h}_i}{dt} = f_{\theta}(\mathbf{h}_i, \mathbf{h}_j, \mathbf{e}_{ij})
+    
+    $$
+    
+    <aside>
+    <img src="/icons/command-line_gray.svg" alt="/icons/command-line_gray.svg" width="40px" />
+    
+    **Integration:**
+    
+    1. **Initial Condition:** Use the output of hierarchical message passing as the initial state **h**(*t*=0).
+        
+        h(t=0)
+        
+    2. **ODE Solver:** Integrate dynamics forward in time using solvers like RK4 or Dormand-Prince.
+    3. **Recursive Rollout:** For multi-step prediction, recursively apply the dynamics model.
+    </aside>
+    
+
+### **3D Gaussian Splatting Differentiable Rasterizer**
+
+- Render photorealistic novel-views of Gaussians.
+- Compute differentiable image-based indirect loss.
+
+<aside>
+<img src="/icons/command-line_gray.svg" alt="/icons/command-line_gray.svg" width="40px" />
+
+### **Summary**
+
+1. **Encoding Multi-View 2D Video Data to 3D Gaussians with Features**
+    - Feature Extraction via 2D Foundation Models 
+    (in 2D image-space)
+    - Encode multi-view video data into 3D Gaussian particles with latent features through feature distillation across views 
+    (2D images → 3D Gaussians)
+2. **Graph Construction:**
+    - Construct a hierarchical graph with nodes, edges, and inter-level connections.
+3. **Hierarchical Message Passing:**
+    - Apply bottom-up propagation to transmit fine-grained details to higher levels.
+    - Perform within-level propagation to refine local interactions.
+    - Use top-down propagation to integrate global context back to detailed representations.
+4. **Temporal Dynamics:**
+    - Evolve node states using Graph Neural ODEs for dynamic predictions.
+    - Combine hierarchical representations and temporal evolution for long-horizon prediction.
+5. **Output:**
+    - Predicted Gaussian parameters for the next timestep.
+    - Rendered frames using a differentiable 3D Gaussian Splatting Rasterizer.
+</aside>
+
+## **3. Training Framework**
 
 ---
 
-### 2.4 Rendering Pipeline
-- Use a **differentiable rendering module** to generate multi-view frames from predicted Gaussians.
-- Rendered frames are used for loss computation and visualization.
+- **Input:**
+    - Multi-view video frames at a single or multiple timesteps.
+    - Optical flow between timesteps for all views.
+    - Ground truth (GT) Gaussians representing object states acquired through 3DGS Encoding.
+- **Output:**
+    - Predicted Gaussians at the next timestep (GNODE)
+    - Rendered images from the predicted Gaussians.
+- **Loss Computation:**
+    - **Indirect Loss** on Images**:** 
+    Compare rendered frames to ground truth multi-view frames (pixel-wise loss, perceptual loss).
+    - **Direct Loss** on predicted Dynamic Graph**:** 
+    Mean Squared Error (MSE) between predicted and ground truth Gaussian parameters. (e.g., node-attributes: position, size, intensity, color,… edge-attributes: particle-distance/rigidity,…). Physics consistency loss by adding penalties for physically inconsistent predictions, such as overlapping Gaussians or unrealistic velocities.
+- **Gradual Prediction Rollout:**
+    - In the **initial phase (short rollout)** start by training the GNODE to predict **one timestep ahead** using the input data. Use the predicted Gaussians at *t*+1 to compute the loss against the ground truth.
+    - In the **progressive rollout phase (longer horizons)** gradually increase the number of predicted timesteps (rollout length) during training from one predicted Gaussians at t+1 to multiple timesteps [t+1, t+K]. Combine losses at all predicted timesteps. Potentially use irregularly sampled timesteps for loss computation.
+    - Optionally: Test encoding multiple timesteps using an Encoder to produce the rollout instead of conditioning only on a single input timestep. Would give the option to refine node/edge attributes that should remain constant over time like e.g. edge rigidity constraint between nodes. An attribute that can be conditioned on a dynamic graph.
+- **Gradual Input Expansion *(needs more brainstorming)***
+    - Encode multiple timesteps using an encoder to produce the rollout instead of conditioning only on a single input timestep.
+    - Requires to extend Feature 3DGS Encoder that provides Feature 3D Gaussians that are then converted to a static Hierarchical GNODE to a Feature 4DGS Encoder providing Feature 4D Gaussians that can be converted to a Hierarchical GNODE. Would give the option to refine node/edge attributes that should remain constant over time (like e.g. edge rigidity constraint between nodes. An attribute that can be conditioned on a dynamic graph).
+    - The GNODE learns to leverage richer temporal context as training progresses.
+    - Reduces reliance on single-timestep dynamics, enabling better extrapolation.
+- **Noise Injection During Training**
+    - Begin noise injection after the rollout length exceeds a threshold (e.g. 3 timesteps)
+    - Add Gaussian noise to the predicted Gaussians before feeding them autoregressively as inputs for the next prediction.
+    - Noise injection during both input aggregation/encoding and rollout prediction might reduce error accumulation.
+
+# Project Code Directory Organization
 
 ---
 
-## 3. Training Framework
+```markdown
+project-root/
+├── data/
+│   ├── dataset_1/
+│   │   ├── sequence_1/
+│   │   │   ├── rgb/
+│   │   │   │   ├── rgb_cam1_timestep1.png
+│   │   │   │   ├── rgb_cam1_timestep2.png
+│   │   │   │   └── ...
+│   │   │   ├── opticalflow_gt/
+│   │   │   ├── opticalflow_estimated/
+│   │   │   ├── semantic_segmentation_gt/
+│   │   │   ├── sam_features/
+│   │   │   ├── 3d_feature_gaussians/ (num_timesteps gaussian models)
+│   │   │   ├── static_graphs/ (num_timesteps graphs)
+│   │   │   └── ...
+│   │   ├── sequence_2/
+│   │   └── ...
+│   ├── dataset_2/
+│   └── ...
+├── models/
+│   ├── feature_extractor.py
+│   ├── gaussian_encoder.py
+│   ├── graph_constructor.py
+│   └── ...
+├── scripts/
+│   ├── extract_features.py
+│   ├── encode_gaussians.py
+│   └── construct_graphs.py
+├── configs/
+│   └── config.yaml
+└── README.md
 
-### 3.1 Training Schedule
-| **Phase**            | **Inputs**              | **Rollout Horizon (\(K\))** | **Noise Injection** |
-|-----------------------|-------------------------|-----------------------------|----------------------|
-| Initial Phase         | Single timestep         | 1                           | None                 |
-| Intermediate Phase    | Single timestep         | Gradually increase (\(K=2,3,\ldots\)) | Increasing (\(\sigma^2 = 0.01 \cdot K\)) |
-| Advanced Phase        | Multi-timestep          | Maximum horizon (\(K_\text{max}\)) | High (\(\sigma^2 = 0.1\)) |
+```
 
----
-
-### 3.2 Training Workflow
-
-#### **Input Preparation**
-1. Extract object-level and relational latent features from 2D foundational models for each timestep.
-2. For each batch:
-   - Extract video frames, optical flow, and GT Gaussians.
-   - Combine these with latent features to construct the graph.
-
-#### **Graph Construction**
-1. **Nodes:**
-   - Initialize node features with:
-     - Gaussian parameters (position, velocity, size).
-     - Latent embeddings (object-level features).
-2. **Edges:**
-   - Compute edge features using:
-     - Relative spatial information.
-     - Latent embeddings (relational features).
-
-#### **Rollout Prediction**
-1. Use GNODE to iteratively predict Gaussians for \(t+1, t+2, \ldots, t+K\).
-2. Inject noise into predictions for \(t+k > 1\):
-   \[
-   \mathbf{g}_{t+k}^\text{noisy} = \mathbf{g}_{t+k}^\text{pred} + \mathcal{N}(0, \sigma^2)
-   \]
-
-#### **Rendering**
-- Render predicted Gaussians into frames for all \(K\) timesteps.
-
-#### **Loss Computation**
-1. **Gaussian Prediction Loss:**
-   \[
-   \mathcal{L}_\text{rollout} = \frac{1}{K} \sum_{k=1}^K \| \mathbf{g}_{t+k}^\text{pred} - \mathbf{g}_{t+k}^\text{gt} \|^2
-   \]
-2. **Rendering Loss:**
-   \[
-   \mathcal{L}_\text{render} = \frac{1}{K} \sum_{k=1}^K \| \mathbf{I}^\text{pred}_{t+k} - \mathbf{I}^\text{gt}_{t+k} \|^2
-   \]
-3. **Temporal Consistency Loss:**
-   \[
-   \mathcal{L}_\text{temporal} = \frac{1}{K-1} \sum_{k=1}^{K-1} \| \mathbf{g}_{t+k+1}^\text{pred} - \mathbf{g}_{t+k}^\text{pred} \|^2
-   \]
-4. **Regularization Loss:**
-   - Penalize physically implausible behavior (e.g., overlapping Gaussians).
-
-#### **Backward Pass and Optimization**
-- Combine all losses:
-  \[
-  \mathcal{L} = \lambda_1 \mathcal{L}_\text{rollout} + \lambda_2 \mathcal{L}_\text{render} + \lambda_3 \mathcal{L}_\text{temporal} + \lambda_4 \mathcal{L}_\text{reg}
-  \]
-- Update model parameters using a gradient-based optimizer (e.g., Adam).
+# **Project Timeline and Roadmap**
 
 ---
 
-## 4. Testing Framework
+### **Phase 1: Core Model Development (2nd December 2024 – 31st December 2025)**
 
-### Test-Time Objectives
-1. **Interpolation:** Predict intermediate frames between given timesteps.
-2. **Extrapolation:** Extend predictions forward or backward in time.
-3. **Novel View Synthesis:** Generate frames from unseen viewpoints using predicted Gaussians.
+**Objective:** Implement the first prototypical core model to play with some toy data (3D Pointclouds, small rgb-image dataset)
 
-### Metrics
-1. **Gaussian Parameter Accuracy:** Errors in positions, velocities, and other parameters.
-2. **Frame Reconstruction Accuracy:** PSNR, SSIM.
-3. **Temporal Coherence:** Smoothness of predictions.
+- **Feature-3DGS Encoding**
+Build Feature 3D Gaussian Encoding from Multi-View Images (+ CLIP/SAM/DINO Encodings and Optical Flow)
+- **Graph Construction from Feature 3D Gaussians**
+Build hierarchical graphs with: Micro (particle-level), meso (cluster-level), and macro (global) nodes and Intra- and inter-level edges.
+- **Hierarchical Message Passing Graph Neural ODE**
+Implement hierarchical Message Passing GNODE
+- **Visualization Tools**
+Implement Visualization / Logging Tools
+    
+    
 
----
+### **Phase 2: Dataset Preparation (1st January - 15 January)**
 
-## 5. Implementation Modules
+**Objective:** set-up physics simulation, render multi-view sequences (rgb, optical flow, gt camera positions), precompute image features.
 
-### 5.1 Data Processing
-- Extract optical flow, ground truth Gaussians, and latent features from 2D models.
+- Set up synthetic **physics-simulation**:
+    - Orbital dynamics (Blender or pure-python simulation)
+    - Double pendulum (Blender)
+    - Rigid-object interactions (Kubric Dataset Generator, Blender)
+    - Dice throws (Blender)
+    - Balls rolling on a surface (Blender)
+- **Render multi-view image frames** (rgb, pixel-wise optical flow, pixel-wise image segmentation) for each scene
+    
+    Per dataset (orbital dynamics, double pendulum, rigid-object interactions, dice throws, balls rolling) render:
+    
+    - 50+ views (rgb, gt optical flow, gt image segmentation) per timestep for pseudo-GT Gaussian creation
+    - 1000+ timesteps
+    - 1000+ sequences
+- **Compute 2D Features (CLIP, SAM, DINO) and Optical Flow (RAFT)**
+    
+    Per image frame extract 2D semantic features using CLIP, SAM, or DINO
+    
+    Per image frame compute optical flow using RAFT
+    
+- **Generate pseudo-GT Feature 3D Gaussians**
+    
+    Per timestep generate pseudo-GT Feature 3D Gaussians via Feature 3DGS optimization distilling image features either from:
+    
+    - gt optical flow and gt image segmentation or
+    - computed optical flow and computed 2D semantic CLIP/SAM/DINO features)
+    - No temporal correspondences of gaussians between timesteps!
 
-### 5.2 Graph Construction
-- Build dynamic graphs with latent node and edge features.
+### **Phase 3: Training and Experimentation (15th January - 31st January)**
 
-### 5.3 GNODE Architecture
-- Integrate GNN-based message passing with Neural ODE dynamics and latent features.
+**Objective:** Train Hierarchical GNODE and perform baseline comparisons.
 
-### 5.4 Rendering Module
-- Differentiable rendering for multi-view frames.
+**Initial Training** 
 
-### 5.5 Loss Computation
-- Implement all loss terms.
+- Train Hierarchical GNODE with:
+    - Single-timestep predictions
+    - Gradually increase prediction horizons (t+1 to t+K)
+    - Irregularly sampled timesteps to predict
+    - Gradual Input Expansion (Extend Feature 3DGS Encoder to a Feature 4DGS Encoder)
+    - Introduce noise injection for robustness
+    - Test stability under perturbed initial conditions
+- Train on simplest dataset first
+- Evaluation/Inference:
+    - Condition on single timestep / multiple timesteps
+    - Direct Loss: MSE for Gaussian parameters (only possible for dataset with corresponding GT Gaussians between timesteps, pseudo-gt gaussians with no temporal correspondences aren’t sufficient).
+    - Indirect Loss: Image-based Loss (MSE, LPIPS, SSIM,…)
+    - Temporal consistency over Extrapolation Length (Accumulative Loss over Rollout-Length)
 
----
+### Phase 4: **Full Pipeline Integration and Validation (1st February - 15th February)**
 
-## 6. Roadmap
+**Objective:** Finalize the end-to-end pipeline and validate on all synthetic datasets with extensive tests.
 
-### Phase 1: Core Development (Weeks 1–4)
-- Implement GNODE architecture and graph construction.
-- Test single-step prediction with latent features.
+- If time requires expand with real-world dataset (would require implementing dataset preparation pipeline for real-world data)
+- Test interpolation, extrapolation, and novel view synthesis
+- Perform ablational studies on
+    - different 3D Backbones: PointNet, MLP, Attention-Based Transformer operating directly on 3D Gaussian Dynamics
+    - contribution of hierarchical message passing (hierarchical component)
+    - role of temporal GNODE dynamics (Neural ODE component)
 
-### Phase 2: Gradual Rollout (Weeks 5–8)
-- Add progressive rollout prediction and noise injection.
+### Phase 5: **Baseline Setup (15th February - 28th February)**
 
-### Phase 3: Full Pipeline Integration (Weeks 9–12)
-- Integrate rendering, latent features, and loss computation.
+**Objective:** Implement baseline models and perform baseline experiments.
 
-### Phase 4: Testing and Refinement (Weeks 13–16)
-- Test interpolation, extrapolation, and novel view synthesis.
+- 2D-based methods: Video Extrapolation (Phyworld, VidODE, ExtDM)
+- 3D-based methods: Temporal Scene Extrapolation (Gaussian Prediction (no code available yet), Learning 3D Particle-based Simulators from RGB-D Videos (no code available yet))
+- Different 3D Gaussian Backbone (ours: Hierarchical GNODE; others: PointNet, MLP)
 
----
+### Phase 6: **Paper Writing and Final Submission (1st March - 8th March)**
 
-## 7. Expected Outcomes
-1. A trained GNODE capable of leveraging latent features for accurate and robust dynamics modeling.
-2. High-quality interpolation, extrapolation, and novel view synthesis results.
-3. Comprehensive evaluation with quantitative metrics and qualitative visualizations.
+**Objective:** Prepare and submit the ICCV 2025 paper.
+
+1. **Draft Writing (1st – 4th March 2025)**
+    
+    Introduction, Related Work, Methodology, Experiments, and Results including:
+    
+    - Qualitative results for dynamics and rendering
+    - Quantitative metrics for all baseline comparisons
+2. **Visualization and Final Edits (5th – 7th March 2025)**
+    
+    Generate visualizations:
+    
+    - Gaussian trajectories, rollout predictions, novel views
+    - Final proofing and formatting
+3. **Project-Demo Page and Github Code Repo**
+    - Set up a project demo page with explanatory material and visualizations
+    - Push clean Github code repo
+4. **Submission (8th March 2025)**
+    
+    Submit the finalized paper and supplementary materials to ICCV 2025.
