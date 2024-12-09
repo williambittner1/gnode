@@ -320,10 +320,10 @@ class PointcloudSequenceDataset(Dataset):
             output_features = []
             if self.use_position:
                 output_features.append(pos_tnext)
-            if self.use_object_id and obj_id_tnext is not None:
-                output_features.append(obj_id_tnext)
-            if self.use_vertex_id and vert_id_tnext is not None:
-                output_features.append(vert_id_tnext)
+            # if self.use_object_id and obj_id_tnext is not None:
+            #     output_features.append(obj_id_tnext)
+            # if self.use_vertex_id and vert_id_tnext is not None:
+            #     output_features.append(vert_id_tnext)
 
             Y_t = np.concatenate(output_features, axis=1) if len(output_features) > 1 else (pos_tnext if output_features else pos_tnext)
 
