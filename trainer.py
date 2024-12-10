@@ -1,4 +1,5 @@
 import wandb
+from tqdm import tqdm
 
 class Trainer:
     def __init__(self, model, criterion, optimizer, scheduler=None, device='cpu'):
@@ -8,7 +9,7 @@ class Trainer:
         self.scheduler = scheduler
         self.device = device
 
-        wandb.init(project='gnode_trainer', dir='/work/williamb/gnode_wandb')
+        
         wandb.watch(model)
 
     def train_one_epoch(self, dataloader):
@@ -39,16 +40,22 @@ class Trainer:
         return total_loss / num_batches
 
     def train(self, dataloader, epochs=1000):
-        for epoch in range(epochs):
+        
+        progress_bar = tqdm(range(epochs), desc="Training", unit="epoch")
+        for epoch in progress_bar:
             avg_loss = self.train_one_epoch(dataloader)
+            current_lr = self.optimizer.param_groups[0]['lr']
             # Log metrics to wandb
             wandb.log({
                 "epoch": epoch,
                 "train_loss": avg_loss,
-                "learning_rate": self.optimizer.param_groups[0]['lr']
+                "learning_rate": current_lr
             })
             
             if self.scheduler:
                 self.scheduler.step()
 
-            print(f"Epoch {epoch}: Loss {avg_loss:.7f}")
+            # Update progress bar description with current metrics
+            progress_bar.set_description(
+                f"Training [Loss: {avg_loss:.7f} | LR: {current_lr:.3e}]"
+            )

@@ -30,6 +30,24 @@ import wandb
 
 def main():
 
+    # 0. Initialize wandb
+    
+    config = {
+        "input_sequence_length": 5,
+        "output_sequence_length": 3,
+        "epochs": 100_000,
+        "batch_size": 512,
+        "hidden_dim": 128,
+        "learning_rate": 1e-3,
+        "scheduler_step_size": 1000,
+        "scheduler_gamma": 0.9
+    }
+    
+    wandb.init(project='gnode_trainer', config=config, dir='/work/williamb/gnode_wandb')
+
+
+
+
     # 1. Data Setup
     input_folder = "data/obj_sequence1"
 
@@ -49,7 +67,7 @@ def main():
         use_vertex_id=True
     )
 
-    dataloader = DataLoader(dataset, batch_size=512, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=256, shuffle=True)
 
 
     # 2. Model Setup
