@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from dataloader import Pointcloud, DynamicPointcloud, PointcloudNFrameSequenceDataset
+from dataloader import Pointcloud, DynamicPointcloud, PointcloudNFrameSequenceDataset, PointcloudDataset
 from model import PointMLPNFrames  
 from trainer import Trainer
 from evaluator import Evaluator
@@ -27,9 +27,9 @@ import wandb
 # 2. Model Setup
 # run_model_setup = True
 # 3. Load pretrained model
-run_load_pretrained_model = True
+run_load_pretrained_model = False
 # 4. Training
-run_training = False
+run_training = True
 # 5. Evaluation (Rollout)
 # run_evaluation = True
 # 6. Visualization
@@ -48,36 +48,60 @@ def main():
         "learning_rate": 1e-3,
         "scheduler_step_size": 1000,
         "scheduler_gamma": 0.9,
-        "save_model_checkpoint_iter": 100
+        "save_model_checkpoint_iter": 1000,
+        "dataset_name": "dataset1"
     }
     
-    wandb.init(project='gnode_trainer', config=config, dir='/work/williamb/gnode_wandb')
+    wandb.init(project='tmp', config=config, dir='/work/williamb/gnode_wandb')
 
 
     # 1. Data Setup
-    input_folder = "data/obj_sequence1"
-
-    gt_dyn_pc = DynamicPointcloud()
-    gt_dyn_pc.load_obj_sequence(input_folder)
+    root_dir = f"data/{config['dataset_name']}"  # Contains 'train' and 'test' folders
 
     input_sequence_length = config["input_sequence_length"]
     output_sequence_length = config["output_sequence_length"]
     epochs = config["epochs"]
 
-    dataset = PointcloudNFrameSequenceDataset(
-        gt_dyn_pc, 
+
+    # Create train dataset and dataloader
+    train_dataset = PointcloudDataset(
+        root_dir,
+        split='train',
         input_sequence_length=input_sequence_length,
         output_sequence_length=output_sequence_length,
-        use_position=True, 
-        use_object_id=True, 
+        use_position=True,
+        use_object_id=True,
         use_vertex_id=True
     )
+    
+    train_dataloader = DataLoader(
+        train_dataset, 
+        batch_size=config["batch_size"], 
+        shuffle=True
+    )
 
-    dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=True)
+    # Create test dataset and dataloader
+    test_dataset = PointcloudDataset(
+        root_dir,
+        split='test',
+        input_sequence_length=input_sequence_length,
+        output_sequence_length=output_sequence_length,
+        use_position=True,
+        use_object_id=True,
+        use_vertex_id=True
+    )
+    
+    test_dataloader = DataLoader(
+        test_dataset, 
+        batch_size=config["batch_size"], 
+        shuffle=False
+    )
+
+
 
 
     # 2. Model Setup
-    X_t, Y_t = dataset[0]
+    X_t, Y_t = train_dataset[0]
     input_dim = X_t.shape[-1]
     output_dim = Y_t.shape[-1]
 
@@ -90,7 +114,7 @@ def main():
     )
 
     model_checkpoint_name = f"{model.__class__.__name__}_input_seq{input_sequence_length}_output_seq{output_sequence_length}_{epochs}_epochs"
-    model_checkpoint_folder = f"model_checkpoint/{model_checkpoint_name}"
+    model_checkpoint_folder = f"model_checkpoint/{config['dataset_name']}/{model_checkpoint_name}"
     os.makedirs(model_checkpoint_folder, exist_ok=True)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -109,20 +133,20 @@ def main():
     # 4. Training
     if run_training:   
         trainer = Trainer(model, criterion, optimizer, scheduler, device, model_checkpoint_folder, model_checkpoint_name, config["save_model_checkpoint_iter"])
-        trainer.train(dataloader, epochs=epochs)
+        trainer.train(train_dataloader, epochs=epochs)
 
 
     # 5. Evaluation (Rollout)
     model.eval()
 
     evaluator = Evaluator(model, device)
-    initial_X = dataset[0][0]  # dataset[0] gives (X_t, Y_t), [0] takes X_t
+    initial_X = test_dataset[0][0]  # dataset[0] gives (X_t, Y_t), [0] takes X_t
     
     pred_dyn_pc = evaluator.rollout(
         initial_X,
         use_position=True,
-        use_object_id=dataset.use_object_id,
-        use_vertex_id=dataset.use_vertex_id,
+        use_object_id=test_dataset.use_object_id,
+        use_vertex_id=test_dataset.use_vertex_id,
         rollout_length=100
     )
     

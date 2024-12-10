@@ -418,6 +418,64 @@ class Pointcloud1FrameSequenceDataset(Dataset):
         X_t, Y_t = self.data_pairs[idx]
         return torch.tensor(X_t, dtype=torch.float32), torch.tensor(Y_t, dtype=torch.float32)
 
+class PointcloudDataset(Dataset):
+    def __init__(self, root_dir, split='train', input_sequence_length=3, output_sequence_length=1,
+                 use_position=True, use_object_id=True, use_vertex_id=True):
+        """
+        Dataset for handling multiple obj_sequence folders.
+        
+        Args:
+            root_dir: Path to the dataset directory containing 'train' and 'test' folders
+            split: Either 'train' or 'test'
+            input_sequence_length: Number of consecutive frames to use as input
+            output_sequence_length: Number of consecutive frames to predict
+        """
+        self.split_dir = os.path.join(root_dir, split)
+        if not os.path.exists(self.split_dir):
+            raise FileNotFoundError(f"Split directory {self.split_dir} not found")
+        
+        self.sequence_folders = [f for f in os.listdir(self.split_dir) 
+                               if os.path.isdir(os.path.join(self.split_dir, f)) 
+                               and f.startswith('obj_sequence')]
+        
+        if not self.sequence_folders:
+            raise FileNotFoundError(f"No obj_sequence folders found in {self.split_dir}")
+        
+        self.data_pairs = []
+        self.use_position = use_position
+        self.use_object_id = use_object_id
+        self.use_vertex_id = use_vertex_id
+        self.input_sequence_length = input_sequence_length
+        self.output_sequence_length = output_sequence_length
+        
+        # Load all sequences
+        for seq_folder in self.sequence_folders:
+            seq_path = os.path.join(self.split_dir, seq_folder)
+            
+            # Load the sequence
+            gt_dyn_pc = DynamicPointcloud()
+            gt_dyn_pc.load_obj_sequence(seq_path)
+            
+            # Create dataset for this sequence
+            sequence_dataset = PointcloudNFrameSequenceDataset(
+                gt_dyn_pc,
+                input_sequence_length=input_sequence_length,
+                output_sequence_length=output_sequence_length,
+                use_position=use_position,
+                use_object_id=use_object_id,
+                use_vertex_id=use_vertex_id
+            )
+            
+            # Add all pairs from this sequence
+            self.data_pairs.extend(sequence_dataset.data_pairs)
+    
+    def __len__(self):
+        return len(self.data_pairs)
+    
+    def __getitem__(self, idx):
+        X_t, Y_t = self.data_pairs[idx]
+        return torch.tensor(X_t, dtype=torch.float32), torch.tensor(Y_t, dtype=torch.float32)
+
 
 if __name__ == "__main__":
     input_folder = "data/obj_sequence1"
