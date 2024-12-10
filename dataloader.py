@@ -145,6 +145,28 @@ class DynamicPointcloud:
 
         return pc
 
+    @classmethod
+    def from_sequence(cls, position_sequence):
+        """
+        Create a DynamicPointcloud from a sequence of positions.
+        
+        Args:
+            position_sequence: List or array of positions, shape [num_frames, num_points, 3]
+        
+        Returns:
+            DynamicPointcloud object with frames populated from the sequence
+        """
+        dyn_pc = cls()
+        
+        for frame_idx, positions in enumerate(position_sequence, start=1):
+            pc = Pointcloud()
+            pc.positions = positions
+            pc.object_id = np.zeros(len(positions), dtype=int)  # Default object IDs
+            pc.vertex_id = np.arange(len(positions), dtype=int)  # Default vertex IDs
+            dyn_pc.frames[frame_idx] = pc
+            
+        return dyn_pc
+
     def load_obj_sequence(self, directory):
         """
         Load a sequence of OBJ files and store them into self.frames.
@@ -277,30 +299,32 @@ class DynamicPointcloud:
         )
 
 class PointcloudNFrameSequenceDataset(Dataset):
-    def __init__(self, gt_dyn_pc, sequence_length=3, use_position=True, use_object_id=True, use_vertex_id=True):
+    def __init__(self, gt_dyn_pc, input_sequence_length=3, output_sequence_length=1, 
+                 use_position=True, use_object_id=True, use_vertex_id=True):
         """
-        Creates pairs (X_t, Y_t) where X_t includes 'sequence_length' consecutive frames
-        and Y_t is the next frame after the sequence.
+        Creates pairs (X_t, Y_t) where X_t includes 'input_sequence_length' consecutive frames
+        and Y_t includes the next 'output_sequence_length' frames.
         
         Args:
-            sequence_length: number of consecutive frames to use as input
+            input_sequence_length: number of consecutive frames to use as input
+            output_sequence_length: number of consecutive frames to predict
         """
         self.frames = sorted(gt_dyn_pc.frames.keys())
         self.data_pairs = []
         self.use_position = use_position
         self.use_object_id = use_object_id
         self.use_vertex_id = use_vertex_id
-        self.sequence_length = sequence_length
+        self.input_sequence_length = input_sequence_length
+        self.output_sequence_length = output_sequence_length
 
-        # We need at least sequence_length + 1 frames (sequence + target)
-        for i in range(len(self.frames) - sequence_length):
-            # Get sequence of frames
+        # We need at least input_sequence_length + output_sequence_length frames
+        for i in range(len(self.frames) - (input_sequence_length + output_sequence_length - 1)):
+            # Get input sequence frames
             input_frames = []
-            for j in range(sequence_length):
+            for j in range(input_sequence_length):
                 t = self.frames[i + j]
                 pc_t = gt_dyn_pc.frames[t]
                 
-                # Build features for this frame
                 frame_features = []
                 if self.use_position:
                     frame_features.append(pc_t.positions)
@@ -313,12 +337,17 @@ class PointcloudNFrameSequenceDataset(Dataset):
                 input_frames.append(frame_data)
 
             # Stack all input frames
-            X_t = np.stack(input_frames, axis=0)  # (sequence_length, N, feature_dim)
+            X_t = np.stack(input_frames, axis=0)  # (input_sequence_length, N, feature_dim)
 
-            # Get target frame
-            t_next = self.frames[i + sequence_length]
-            pc_next = gt_dyn_pc.frames[t_next]
-            Y_t = pc_next.positions  # Only predict positions for now
+            # Get output sequence frames
+            output_frames = []
+            for j in range(output_sequence_length):
+                t_next = self.frames[i + input_sequence_length + j]
+                pc_next = gt_dyn_pc.frames[t_next]
+                output_frames.append(pc_next.positions)  # Only predict positions for now
+
+            # Stack all output frames
+            Y_t = np.stack(output_frames, axis=0)  # (output_sequence_length, N, 3)
 
             self.data_pairs.append((X_t, Y_t))
 

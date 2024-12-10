@@ -22,9 +22,11 @@ class PointMLP1Frame(nn.Module):
 
 
 class PointMLPNFrames(nn.Module):
-    def __init__(self, input_dim=3, output_dim=3, hidden_dim=128, sequence_length=1):
+    def __init__(self, input_dim=3, output_dim=3, hidden_dim=128, 
+                 input_sequence_length=1, output_sequence_length=1):
         super(PointMLPNFrames, self).__init__()
-        self.sequence_length = sequence_length
+        self.input_sequence_length = input_sequence_length
+        self.output_sequence_length = output_sequence_length
         
         # First process each frame independently
         self.frame_encoder = nn.Sequential(
@@ -42,28 +44,28 @@ class PointMLPNFrames(nn.Module):
             batch_first=True
         )
         
-        # Final MLP to predict next positions
+        # Final MLP to predict multiple future positions
         self.output_mlp = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
-            nn.Linear(hidden_dim, output_dim)
+            nn.Linear(hidden_dim, output_dim * output_sequence_length)
         )
     
     def forward(self, x):
-        # x shape: (sequence_length, N, input_dim) or (B, sequence_length, N, input_dim)
+        # x shape: (input_sequence_length, N, input_dim) or (B, input_sequence_length, N, input_dim)
         if len(x.shape) == 3:
             x = x.unsqueeze(0)  # Add batch dimension if not present
         
         B, S, N, D = x.shape
         
         # Process each frame independently
-        x = x.reshape(B*S*N, D)  # Changed from view to reshape
+        x = x.reshape(B*S*N, D)
         x = self.frame_encoder(x)
-        x = x.reshape(B, S, N, -1)  # Changed from view to reshape
+        x = x.reshape(B, S, N, -1)
         
         # Process each point's sequence independently
         x = x.transpose(1, 2)  # (B, N, S, hidden_dim)
-        x = x.reshape(B*N, S, -1)  # Changed from view to reshape
+        x = x.reshape(B*N, S, -1)
         
         # LSTM processing
         x, _ = self.sequence_processor(x)
@@ -71,6 +73,7 @@ class PointMLPNFrames(nn.Module):
         
         # Final prediction
         x = self.output_mlp(x)
-        x = x.reshape(B, N, -1)  # Changed from view to reshape
+        x = x.reshape(B, N, self.output_sequence_length, -1)  # Reshape to separate output sequence
+        x = x.transpose(1, 2)  # (B, output_sequence_length, N, output_dim)
         
         return x.squeeze(0)  # Remove batch dim if not needed

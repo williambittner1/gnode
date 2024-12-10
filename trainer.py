@@ -1,4 +1,4 @@
-
+import wandb
 
 class Trainer:
     def __init__(self, model, criterion, optimizer, scheduler=None, device='cpu'):
@@ -7,6 +7,9 @@ class Trainer:
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.device = device
+
+        wandb.init(project='gnode_trainer', dir='/work/williamb/gnode_wandb')
+        wandb.watch(model)
 
     def train_one_epoch(self, dataloader):
         self.model.train()
@@ -38,7 +41,14 @@ class Trainer:
     def train(self, dataloader, epochs=1000):
         for epoch in range(epochs):
             avg_loss = self.train_one_epoch(dataloader)
+            # Log metrics to wandb
+            wandb.log({
+                "epoch": epoch,
+                "train_loss": avg_loss,
+                "learning_rate": self.optimizer.param_groups[0]['lr']
+            })
+            
             if self.scheduler:
                 self.scheduler.step()
 
-            print(f"Epoch {epoch}: Loss {avg_loss:.5f}")
+            print(f"Epoch {epoch}: Loss {avg_loss:.7f}")
