@@ -276,8 +276,61 @@ class DynamicPointcloud:
             text=hovertemplate
         )
 
+class PointcloudNFrameSequenceDataset(Dataset):
+    def __init__(self, gt_dyn_pc, sequence_length=3, use_position=True, use_object_id=True, use_vertex_id=True):
+        """
+        Creates pairs (X_t, Y_t) where X_t includes 'sequence_length' consecutive frames
+        and Y_t is the next frame after the sequence.
+        
+        Args:
+            sequence_length: number of consecutive frames to use as input
+        """
+        self.frames = sorted(gt_dyn_pc.frames.keys())
+        self.data_pairs = []
+        self.use_position = use_position
+        self.use_object_id = use_object_id
+        self.use_vertex_id = use_vertex_id
+        self.sequence_length = sequence_length
 
-class PointcloudSequenceDataset(Dataset):
+        # We need at least sequence_length + 1 frames (sequence + target)
+        for i in range(len(self.frames) - sequence_length):
+            # Get sequence of frames
+            input_frames = []
+            for j in range(sequence_length):
+                t = self.frames[i + j]
+                pc_t = gt_dyn_pc.frames[t]
+                
+                # Build features for this frame
+                frame_features = []
+                if self.use_position:
+                    frame_features.append(pc_t.positions)
+                if self.use_object_id and pc_t.object_id is not None:
+                    frame_features.append(pc_t.object_id.reshape(-1, 1))
+                if self.use_vertex_id and pc_t.vertex_id is not None:
+                    frame_features.append(pc_t.vertex_id.reshape(-1, 1))
+                
+                frame_data = np.concatenate(frame_features, axis=1)
+                input_frames.append(frame_data)
+
+            # Stack all input frames
+            X_t = np.stack(input_frames, axis=0)  # (sequence_length, N, feature_dim)
+
+            # Get target frame
+            t_next = self.frames[i + sequence_length]
+            pc_next = gt_dyn_pc.frames[t_next]
+            Y_t = pc_next.positions  # Only predict positions for now
+
+            self.data_pairs.append((X_t, Y_t))
+
+    def __getitem__(self, idx):
+        X_t, Y_t = self.data_pairs[idx]
+        return torch.tensor(X_t, dtype=torch.float32), torch.tensor(Y_t, dtype=torch.float32)
+    
+    def __len__(self):
+        """Return the total number of samples in the dataset"""
+        return len(self.data_pairs)
+    
+class Pointcloud1FrameSequenceDataset(Dataset):
     def __init__(self, gt_dyn_pc, use_position=True, use_object_id=True, use_vertex_id=True):
         """
         Creates pairs (X_t, Y_t) from consecutive frames.
