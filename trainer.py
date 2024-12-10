@@ -1,13 +1,26 @@
 import wandb
 from tqdm import tqdm
+import torch
 
 class Trainer:
-    def __init__(self, model, criterion, optimizer, scheduler=None, device='cpu'):
+    def __init__(self, 
+                 model, 
+                 criterion, 
+                 optimizer, 
+                 scheduler=None, 
+                 device='cpu',
+                 model_checkpoint_folder="model_checkpoint",
+                 model_checkpoint_name="model_checkpoint.pth",
+                 save_model_iter=10_000,    
+                 ):
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.device = device
+        self.model_checkpoint_folder = model_checkpoint_folder
+        self.model_checkpoint_name = model_checkpoint_name
+        self.save_model_iter = save_model_iter
 
         
         wandb.watch(model)
@@ -59,3 +72,13 @@ class Trainer:
             progress_bar.set_description(
                 f"Training [Loss: {avg_loss:.7f} | LR: {current_lr:.3e}]"
             )
+
+            # Intermediate checkpoints
+            if (epoch + 1) % self.save_model_iter == 0:
+                torch.save(self.model.state_dict(), f"{self.model_checkpoint_folder}/{self.model_checkpoint_name}_{epoch + 1}.pth")
+                print(f"Intermediate checkpoint saved at epoch {epoch + 1}") 
+
+            # Final checkpoint
+            if epoch == epochs - 1:
+                torch.save(self.model.state_dict(), f"{self.model_checkpoint_folder}/{self.model_checkpoint_name}.pth")
+                print(f"Final checkpoint saved at epoch {epoch + 1}")
