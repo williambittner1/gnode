@@ -41,18 +41,18 @@ def main():
     # 0. WandB Setup
     config = {
         "input_sequence_length": 5,
-        "output_sequence_length": 3,
-        "epochs": 1_000,
+        "output_sequence_length": 1,
+        "epochs": 100,
         "batch_size": 512,
         "hidden_dim": 128,
         "learning_rate": 1e-3,
         "scheduler_step_size": 1000,
-        "scheduler_gamma": 0.9,
+        "scheduler_gamma": 0.95,
         "save_model_checkpoint_iter": 1000,
-        "dataset_name": "dataset1"
+        "dataset_name": "orbit_dataset2"
     }
     
-    wandb.init(project='tmp', config=config, dir='/work/williamb/gnode_wandb')
+    wandb.init(project='tmp', config=config, dir='/work/williamb/gnode_wandb') # LSTM_PointMLP
 
 
     # 1. Data Setup
