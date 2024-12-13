@@ -1,0 +1,30 @@
+
+The following have been reloaded with a version change:
+  1) all/CUDA/12.1.0 => all/CUDA/11.7.0
+
+wandb: Using wandb-core as the SDK backend. Please refer to https://wandb.me/wandb-core for more information.
+wandb: Currently logged in as: williambittner (william_masterthesis). Use `wandb login --relogin` to force relogin
+wandb: WARNING Path /work/williamb/gnode_wandb/wandb/ wasn't writable, using system temp directory.
+wandb: Tracking run with wandb version 0.18.5
+wandb: Run data is saved locally in /tmp/wandb/run-20241213_114333-a5e7acz4
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run confused-galaxy-38
+wandb: ⭐️ View project at https://wandb.ai/william_masterthesis/tmp
+wandb: 🚀 View run at https://wandb.ai/william_masterthesis/tmp/runs/a5e7acz4
+Training:   0%|          | 0/10 [00:00<?, ?epoch/s]Training [Loss: 8.3582012 | LR: 1.000e-03]:   0%|          | 0/10 [00:04<?, ?epoch/s]Training [Loss: 8.3582012 | LR: 1.000e-03]:  10%|█         | 1/10 [00:04<00:44,  4.96s/epoch]Training [Loss: 1.8994402 | LR: 1.000e-03]:  10%|█         | 1/10 [00:09<00:44,  4.96s/epoch]Training [Loss: 1.8994402 | LR: 1.000e-03]:  20%|██        | 2/10 [00:09<00:36,  4.59s/epoch]Training [Loss: 1.5757012 | LR: 1.000e-03]:  20%|██        | 2/10 [00:13<00:36,  4.59s/epoch]Training [Loss: 1.5757012 | LR: 1.000e-03]:  30%|███       | 3/10 [00:13<00:31,  4.47s/epoch]Training [Loss: 1.4997666 | LR: 1.000e-03]:  30%|███       | 3/10 [00:17<00:31,  4.47s/epoch]Training [Loss: 1.4997666 | LR: 1.000e-03]:  40%|████      | 4/10 [00:17<00:26,  4.38s/epoch]Training [Loss: 1.4879847 | LR: 1.000e-03]:  40%|████      | 4/10 [00:21<00:26,  4.38s/epoch]Training [Loss: 1.4879847 | LR: 1.000e-03]:  50%|█████     | 5/10 [00:21<00:21,  4.28s/epoch]Training [Loss: 1.4722114 | LR: 1.000e-03]:  50%|█████     | 5/10 [00:26<00:21,  4.28s/epoch]Training [Loss: 1.4722114 | LR: 1.000e-03]:  60%|██████    | 6/10 [00:26<00:16,  4.23s/epoch]Training [Loss: 1.4355509 | LR: 1.000e-03]:  60%|██████    | 6/10 [00:30<00:16,  4.23s/epoch]Training [Loss: 1.4355509 | LR: 1.000e-03]:  70%|███████   | 7/10 [00:30<00:12,  4.19s/epoch]Training [Loss: 1.3382391 | LR: 1.000e-03]:  70%|███████   | 7/10 [00:34<00:12,  4.19s/epoch]Training [Loss: 1.3382391 | LR: 1.000e-03]:  80%|████████  | 8/10 [00:34<00:08,  4.17s/epoch]Training [Loss: 0.9810277 | LR: 1.000e-03]:  80%|████████  | 8/10 [00:38<00:08,  4.17s/epoch]Training [Loss: 0.9810277 | LR: 1.000e-03]:  90%|█████████ | 9/10 [00:38<00:04,  4.16s/epoch]Training [Loss: 0.6791582 | LR: 1.000e-03]:  90%|█████████ | 9/10 [00:42<00:04,  4.16s/epoch]Training [Loss: 0.6791582 | LR: 1.000e-03]: 100%|██████████| 10/10 [00:42<00:00,  4.15s/epoch]Training [Loss: 0.6791582 | LR: 1.000e-03]: 100%|██████████| 10/10 [00:42<00:00,  4.26s/epoch]
+wandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:         epoch ▁▂▃▃▄▅▆▆▇█
+wandb: learning_rate ▁▁▁▁▁▁▁▁▁▁
+wandb:    train_loss █▂▂▂▂▂▂▂▁▁
+wandb: 
+wandb: Run summary:
+wandb:         epoch 9
+wandb: learning_rate 0.001
+wandb:    train_loss 0.67916
+wandb: 
+wandb: 🚀 View run confused-galaxy-38 at: https://wandb.ai/william_masterthesis/tmp/runs/a5e7acz4
+wandb: ⭐️ View project at: https://wandb.ai/william_masterthesis/tmp
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 3 other file(s)
+wandb: Find logs at: /tmp/wandb/run-20241213_114333-a5e7acz4/logs

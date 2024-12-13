@@ -5,7 +5,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from dataloader import Pointcloud, DynamicPointcloud, PointcloudNFrameSequenceDataset, PointcloudDataset
-from model import PointMLPNFrames  
+from model import PointMLPNFrames, PointTransformerNFrames
 from trainer import Trainer
 from evaluator import Evaluator
 
@@ -40,23 +40,25 @@ def main():
     
     # 0. WandB Setup
     config = {
-        "input_sequence_length": 5,
+        "input_sequence_length": 10,
         "output_sequence_length": 1,
-        "epochs": 100,
-        "batch_size": 512,
+        "epochs": 1000,
+        "batch_size": 256,
         "hidden_dim": 128,
         "learning_rate": 1e-3,
-        "scheduler_step_size": 1000,
+        "scheduler_step_size": 50,
         "scheduler_gamma": 0.95,
-        "save_model_checkpoint_iter": 1000,
-        "dataset_name": "orbit_dataset2"
+        "save_model_checkpoint_iter": 500,
+        "dataset_name": "orbiting_dataset_corrected"
     }
     
-    wandb.init(project='tmp', config=config, dir='/work/williamb/gnode_wandb') # LSTM_PointMLP
-
+    print("Initializing wandb...")
+    wandb.init(project='PointTransformerNFrames_tmp', config=config, dir='/work/williamb/gnode_wandb')
+    print("wandb initialized")
 
     # 1. Data Setup
-    root_dir = f"data/{config['dataset_name']}"  # Contains 'train' and 'test' folders
+    # root_dir = f"data/{config['dataset_name']}"  # Contains 'train' and 'test' folders
+    root_dir = f"/scratch/shared/beegfs/williamb/gnode/data/{config['dataset_name']}"  # Contains 'train' and 'test' folders
 
     input_sequence_length = config["input_sequence_length"]
     output_sequence_length = config["output_sequence_length"]
@@ -105,7 +107,15 @@ def main():
     input_dim = X_t.shape[-1]
     output_dim = Y_t.shape[-1]
 
-    model = PointMLPNFrames(
+    # model = PointMLPNFrames(
+    #     input_dim=input_dim, 
+    #     output_dim=output_dim, 
+    #     hidden_dim=config["hidden_dim"],
+    #     input_sequence_length=input_sequence_length,
+    #     output_sequence_length=output_sequence_length
+    # )
+
+    model = PointTransformerNFrames(
         input_dim=input_dim, 
         output_dim=output_dim, 
         hidden_dim=config["hidden_dim"],
@@ -130,7 +140,26 @@ def main():
         model.load_state_dict(torch.load(f"{model_checkpoint_folder}/{model_checkpoint_name}.pth"))
     
 
+    # 3.5 GT Visualization
+    # Load the first test sequence
+    test_sequence_path = "data/orbiting_dataset_corrected/test/obj_sequence_91"  # Adjust path as needed
+
+    # Initialize and load the pointcloud
+    gt_pc = DynamicPointcloud()
+    gt_pc.load_obj_sequence(test_sequence_path)
+
+    # Create and display the animation
+    fig = gt_pc.to_plotly_figure()
+    fig.show()
+
+    html_str_gt = fig.to_html(full_html=False, include_plotlyjs='cdn')
+    wandb.log({
+        "ground_truth_visualization": wandb.Html(html_str_gt, inject=False),
+    })
+
+
     # 4. Training
+    model.train()
     if run_training:   
         trainer = Trainer(model, criterion, optimizer, scheduler, device, model_checkpoint_folder, model_checkpoint_name, config["save_model_checkpoint_iter"])
         trainer.train(train_dataloader, epochs=epochs)
@@ -142,23 +171,36 @@ def main():
     evaluator = Evaluator(model, device)
     initial_X = test_dataset[0][0]  # dataset[0] gives (X_t, Y_t), [0] takes X_t
     
+    # Get ground truth sequence
+    gt_dyn_pc = DynamicPointcloud()
+    gt_dyn_pc.load_obj_sequence(test_sequence_path)
+    
+
     pred_dyn_pc = evaluator.rollout(
         initial_X,
         use_position=True,
         use_object_id=test_dataset.use_object_id,
         use_vertex_id=test_dataset.use_vertex_id,
-        rollout_length=100
+        rollout_length=200
     )
     
     # 6. Visualization
-    fig = pred_dyn_pc.to_plotly_figure()
-    fig.show()
+    fig_pred = pred_dyn_pc.to_plotly_figure()
+    fig_pred.show()
+
+    # Create comparison visualization
+    fig_comparison = gt_dyn_pc.create_comparison_figure(pred_dyn_pc)
+    fig_comparison.show()
+
 
     if run_training:   
-        html_str = fig.to_html(full_html=False, include_plotlyjs='cdn')
+        html_str_pred = fig_pred.to_html(full_html=False, include_plotlyjs='cdn')
+        html_str_gt_vs_pred = fig_comparison.to_html(full_html=False, include_plotlyjs='cdn')  
         wandb.log({
-            "prediction_visualization": wandb.Html(html_str, inject=False)
+            "prediction_visualization": wandb.Html(html_str_pred, inject=False),
+            "gt_vs_pred_visualization": wandb.Html(html_str_gt_vs_pred, inject=False)
         })
+
 
     wandb.finish()
 

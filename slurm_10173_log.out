@@ -1,0 +1,5 @@
+Initializing wandb...
+wandb initialized
+Intermediate checkpoint saved at epoch 100
+Intermediate checkpoint saved at epoch 200
+Final checkpoint saved at epoch 250

@@ -1,0 +1,49 @@
+Lmod has detected the following error: The following module(s) are unknown:
+"cuda/11.7"
+
+Please check the spelling or version number. Also try "module spider ..."
+
+
+
+wandb: Using wandb-core as the SDK backend. Please refer to https://wandb.me/wandb-core for more information.
+wandb: Currently logged in as: williambittner (william_masterthesis). Use `wandb login --relogin` to force relogin
+wandb: WARNING Path /work/williamb/gnode_wandb/wandb/ wasn't writable, using system temp directory.
+wandb: Tracking run with wandb version 0.18.5
+wandb: Run data is saved locally in /tmp/wandb/run-20241212_090314-01h81n19
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run lunar-sea-20
+wandb: ⭐️ View project at https://wandb.ai/william_masterthesis/tmp
+wandb: 🚀 View run at https://wandb.ai/william_masterthesis/tmp/runs/01h81n19
+Training:   0%|          | 0/100 [00:00<?, ?epoch/s]Training:   0%|          | 0/100 [00:00<?, ?epoch/s]
+Traceback (most recent call last):
+  File "/users/williamb/dev/gnode/main.py", line 166, in <module>
+    main()
+  File "/users/williamb/dev/gnode/main.py", line 136, in main
+    trainer.train(train_dataloader, epochs=epochs)
+  File "/athenahomes/williamb/dev/gnode/trainer.py", line 59, in train
+    avg_loss = self.train_one_epoch(dataloader)
+  File "/athenahomes/williamb/dev/gnode/trainer.py", line 46, in train_one_epoch
+    loss.backward()
+  File "/users/williamb/miniconda3/envs/gaussian_splatting_athena/lib/python3.8/site-packages/torch/_tensor.py", line 521, in backward
+    torch.autograd.backward(
+  File "/users/williamb/miniconda3/envs/gaussian_splatting_athena/lib/python3.8/site-packages/torch/autograd/__init__.py", line 289, in backward
+    _engine_run_backward(
+  File "/users/williamb/miniconda3/envs/gaussian_splatting_athena/lib/python3.8/site-packages/torch/autograd/graph.py", line 769, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 9.99 GiB. GPU 0 has a total capacity of 22.37 GiB of which 5.19 GiB is free. Including non-PyTorch memory, this process has 17.17 GiB memory in use. Of the allocated memory 8.51 GiB is allocated by PyTorch, and 8.49 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+Traceback (most recent call last):
+  File "/users/williamb/dev/gnode/main.py", line 166, in <module>
+    main()
+  File "/users/williamb/dev/gnode/main.py", line 136, in main
+    trainer.train(train_dataloader, epochs=epochs)
+  File "/athenahomes/williamb/dev/gnode/trainer.py", line 59, in train
+    avg_loss = self.train_one_epoch(dataloader)
+  File "/athenahomes/williamb/dev/gnode/trainer.py", line 46, in train_one_epoch
+    loss.backward()
+  File "/users/williamb/miniconda3/envs/gaussian_splatting_athena/lib/python3.8/site-packages/torch/_tensor.py", line 521, in backward
+    torch.autograd.backward(
+  File "/users/williamb/miniconda3/envs/gaussian_splatting_athena/lib/python3.8/site-packages/torch/autograd/__init__.py", line 289, in backward
+    _engine_run_backward(
+  File "/users/williamb/miniconda3/envs/gaussian_splatting_athena/lib/python3.8/site-packages/torch/autograd/graph.py", line 769, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 9.99 GiB. GPU 0 has a total capacity of 22.37 GiB of which 5.19 GiB is free. Including non-PyTorch memory, this process has 17.17 GiB memory in use. Of the allocated memory 8.51 GiB is allocated by PyTorch, and 8.49 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)

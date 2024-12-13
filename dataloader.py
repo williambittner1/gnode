@@ -298,6 +298,115 @@ class DynamicPointcloud:
             text=hovertemplate
         )
 
+    def create_comparison_figure(self, other_pc, gt_color='green', pred_color='blue'):
+        """
+        Create a Plotly figure comparing two DynamicPointcloud sequences.
+        
+        Args:
+            other_pc: Another DynamicPointcloud instance to compare with
+            gt_color: Color for ground truth points
+            pred_color: Color for predicted points
+        """
+        if not self.frames or not other_pc.frames:
+            raise ValueError("No data loaded in one or both pointclouds")
+
+        all_frame_indices = sorted(self.frames.keys())
+        
+        # Create initial scatter plots for both sequences
+        gt_scatter = go.Scatter3d(
+            x=self.frames[all_frame_indices[0]].positions[:, 0],
+            y=self.frames[all_frame_indices[0]].positions[:, 1],
+            z=self.frames[all_frame_indices[0]].positions[:, 2],
+            mode='markers',
+            marker=dict(size=1, color=gt_color),
+            name='Ground Truth'
+        )
+        
+        pred_scatter = go.Scatter3d(
+            x=other_pc.frames[all_frame_indices[0]].positions[:, 0],
+            y=other_pc.frames[all_frame_indices[0]].positions[:, 1],
+            z=other_pc.frames[all_frame_indices[0]].positions[:, 2],
+            mode='markers',
+            marker=dict(size=1, color=pred_color),
+            name='Prediction'
+        )
+
+        frames = []
+        for frame_idx in all_frame_indices:
+            gt_pos = self.frames[frame_idx].positions
+            pred_pos = other_pc.frames[frame_idx].positions
+            
+            frame = go.Frame(
+                data=[
+                    go.Scatter3d(
+                        x=gt_pos[:, 0], y=gt_pos[:, 1], z=gt_pos[:, 2],
+                        mode='markers', marker=dict(size=1, color=gt_color),
+                        name='Ground Truth'
+                    ),
+                    go.Scatter3d(
+                        x=pred_pos[:, 0], y=pred_pos[:, 1], z=pred_pos[:, 2],
+                        mode='markers', marker=dict(size=1, color=pred_color),
+                        name='Prediction'
+                    )
+                ],
+                name=f"Frame {frame_idx}"
+            )
+            frames.append(frame)
+
+        fig = go.Figure(
+            data=[gt_scatter, pred_scatter],
+            layout=go.Layout(
+                scene=dict(
+                    aspectmode='cube',
+                    xaxis=dict(range=[-12, 12]),
+                    yaxis=dict(range=[-12, 12]),
+                    zaxis=dict(range=[-12, 12])
+                ),
+                updatemenus=[dict(
+                    type="buttons",
+                    showactive=False,
+                    buttons=[
+                        dict(
+                            label="Play",
+                            method="animate",
+                            args=[None, dict(frame=dict(duration=100, redraw=True), fromcurrent=True)]
+                        ),
+                        dict(
+                            label="Pause",
+                            method="animate",
+                            args=[[None], dict(mode="immediate", frame=dict(duration=0, redraw=False))]
+                        )
+                    ]
+                )],
+                sliders=[dict(
+                    steps=[
+                        dict(
+                            method="animate",
+                            args=[
+                                [f"Frame {frame_idx}"],
+                                dict(mode="immediate", frame=dict(duration=100, redraw=True), transition=dict(duration=0))
+                            ],
+                            label=str(frame_idx)
+                        ) for frame_idx in all_frame_indices
+                    ],
+                    transition=dict(duration=0),
+                    x=0.1,
+                    y=0,
+                    currentvalue=dict(
+                        font=dict(size=16),
+                        prefix="Timeframe: ",
+                        visible=True,
+                        xanchor="center"
+                    ),
+                    len=0.9
+                )],
+                title="Ground Truth vs Predicted Pointcloud"
+            ),
+            frames=frames
+        )
+
+        return fig
+
 class PointcloudNFrameSequenceDataset(Dataset):
     def __init__(self, gt_dyn_pc, input_sequence_length=3, output_sequence_length=1, 
                  use_position=True, use_object_id=True, use_vertex_id=True):
@@ -475,8 +584,7 @@ class PointcloudDataset(Dataset):
     def __getitem__(self, idx):
         X_t, Y_t = self.data_pairs[idx]
         return torch.tensor(X_t, dtype=torch.float32), torch.tensor(Y_t, dtype=torch.float32)
-
-
+    
 if __name__ == "__main__":
     input_folder = "data/obj_sequence1"
 
