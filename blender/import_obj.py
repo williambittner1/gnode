@@ -5,33 +5,33 @@ from mathutils import Matrix
 
 def parse_obj_file(filepath):
     """
-    Parse a single .obj file with multiple objects.
+    Parse a single .obj file that now includes multiple custom vertex attributes.
     Returns a list of object dicts with:
     - 'name': str (object name)
     - 'vertices': list of tuples (x, y, z)
     - 'faces': list of lists [v1, v2, v3, ...]
-    - 'object_id': int or None
-    - 'vertex_ids': list of int (parallel to vertices)
+    - 'attributes': dict {attr_name: list_of_values_per_vertex}
     - 'matrix': 4x4 matrix (list of lists) or None
     """
     objects = []
     current_obj_name = None
     vertex_coords = []
     faces = []
-    object_id_val = None
-    vertex_ids = []
+    attributes = {}  # {attr_name: [values]}
+    current_attr_name = None
+
     matrix = None
     reading_matrix = False
     matrix_lines = []
 
     def finalize_object():
         if current_obj_name and vertex_coords:
+            # Finalize and append object data
             objects.append({
                 'name': current_obj_name,
                 'vertices': vertex_coords[:],
                 'faces': faces[:],
-                'object_id': object_id_val,
-                'vertex_ids': vertex_ids[:],
+                'attributes': {k: v[:] for k, v in attributes.items()},
                 'matrix': matrix
             })
 
@@ -42,19 +42,19 @@ def parse_obj_file(filepath):
                 continue
 
             if line.startswith("# Object:"):
-                # Finalize previous object if any
+                # Finalize the previous object if any
                 if current_obj_name is not None:
                     finalize_object()
 
-                # Start new object
+                # Start a new object
                 current_obj_name = line.split(":", 1)[1].strip()
                 vertex_coords.clear()
                 faces.clear()
-                object_id_val = None
-                vertex_ids.clear()
+                attributes.clear()
                 matrix = None
                 matrix_lines = []
                 reading_matrix = False
+                current_attr_name = None
 
             elif line.startswith("v "):
                 parts = line.split()
@@ -66,19 +66,10 @@ def parse_obj_file(filepath):
                 face_indices = [int(p.split("/")[0]) - 1 for p in parts]
                 faces.append(face_indices)
 
-            elif line.startswith("# oa "):
-                parts = line.split()
-                object_id_val = int(parts[2])
-
-            elif line.startswith("# va "):
-                parts = line.split()
-                val = int(parts[2])
-                vertex_ids.append(val)
-
             elif line.startswith("# Transformation Matrix:"):
                 reading_matrix = True
                 matrix_lines = []
-            
+
             elif reading_matrix and line.startswith("#"):
                 parts = line.split()
                 if len(parts) == 5:  # "# x y z w"
@@ -88,7 +79,38 @@ def parse_obj_file(filepath):
                         matrix = matrix_lines
                         reading_matrix = False
 
-    # Finalize last object
+            elif line.startswith("# Custom Vertex Attributes:"):
+                # Next lines will define attributes by name and their values
+                current_attr_name = None
+
+            elif line.startswith("# ") and ":" in line and not line.startswith("# va"):
+                # This identifies a new attribute name line, e.g., "# object_id:" or "# vertex_id:"
+                # Extract the attribute name
+                # Line format: "# attribute_name:"
+                attr_line = line[2:].strip()  # remove "# "
+                if attr_line.endswith(":"):
+                    attr_name = attr_line[:-1].strip()
+                else:
+                    attr_name = attr_line.strip()
+
+                if attr_name not in attributes:
+                    attributes[attr_name] = []
+                current_attr_name = attr_name
+
+            elif line.startswith("# va "):
+                # Vertex attribute value line
+                parts = line.split()
+                val_str = parts[2]
+                # Determine if val_str is int or float:
+                try:
+                    val = int(val_str)
+                except ValueError:
+                    val = float(val_str)
+
+                if current_attr_name is not None and current_attr_name in attributes:
+                    attributes[current_attr_name].append(val)
+
+    # Finalize the last object
     if current_obj_name is not None:
         finalize_object()
 
@@ -109,10 +131,7 @@ def create_shape_key_from_vertices(obj, vertices, key_name):
 
 def set_object_transform(obj, matrix):
     """ Set the object's matrix_world from a 4x4 list of lists """
-    mat = obj.matrix_world.copy()
-    for i in range(4):
-        for j in range(4):
-            mat[i][j] = matrix[i][j]
+    mat = Matrix(matrix)
     obj.matrix_world = mat
 
 def keyframe_object_transform(obj, frame):
@@ -158,23 +177,41 @@ def import_obj_sequence_animated_all_objects(folder):
         bpy.context.collection.objects.link(obj)
 
         # Assign attributes
-        if obj_data['object_id'] is not None:
+        if 'object_id' in obj_data['attributes']:
             if "object_id" not in mesh.attributes:
                 object_id_attr = mesh.attributes.new("object_id", 'INT', 'POINT')
-                for i in range(len(mesh.vertices)):
-                    object_id_attr.data[i].value = obj_data['object_id']
-        
-        if obj_data['vertex_ids']:
+            obj_object_id = obj_data['attributes']['object_id']
+            if len(obj_object_id) == len(mesh.vertices):
+                for i, val in enumerate(obj_object_id):
+                    object_id_attr.data[i].value = val
+            else:
+                print(f"Warning: 'object_id' length does not match vertex count for object '{base_name}' in frame 1. Skipping 'object_id' assignment.")
+
+        if 'vertex_id' in obj_data['attributes']:
             if "vertex_id" not in mesh.attributes:
                 vertex_id_attr = mesh.attributes.new("vertex_id", 'INT', 'POINT')
-                for i, val in enumerate(obj_data['vertex_ids']):
+            obj_vertex_id = obj_data['attributes']['vertex_id']
+            if len(obj_vertex_id) == len(mesh.vertices):
+                for i, val in enumerate(obj_vertex_id):
                     vertex_id_attr.data[i].value = val
+            else:
+                print(f"Warning: 'vertex_id' length does not match vertex count for object '{base_name}' in frame 1. Skipping 'vertex_id' assignment.")
+
+        if 'timestep' in obj_data['attributes']:
+            if "timestep" not in mesh.attributes:
+                timestep_attr = mesh.attributes.new("timestep", 'INT', 'POINT')
+            obj_timestep = obj_data['attributes']['timestep']
+            if len(obj_timestep) == len(mesh.vertices):
+                for i, val in enumerate(obj_timestep):
+                    timestep_attr.data[i].value = val
+            else:
+                print(f"Warning: 'timestep' length does not match vertex count for object '{base_name}' in frame 1. Skipping 'timestep' assignment.")
 
         # Set the transform from the first frame
-        if obj_data['matrix'] is not None:
-            set_object_transform(obj, obj_data['matrix'])
-            keyframe_object_transform(obj, 1)
-        
+        # if obj_data['matrix'] is not None:
+        #     set_object_transform(obj, obj_data['matrix'])
+        #     keyframe_object_transform(obj, 1)
+
         blender_objects[base_name] = obj
 
     # Now handle subsequent frames
@@ -186,20 +223,51 @@ def import_obj_sequence_animated_all_objects(folder):
 
         for base_name, obj in blender_objects.items():
             if base_name not in frame_obj_dict:
-                print(f"Warning: Object '{base_name}' not found in frame {frame_index}. Skipping shape key.")
+                print(f"Warning: Object '{base_name}' not found in frame {frame_index}. Skipping.")
                 continue
 
             fobj = frame_obj_dict[base_name]
 
             # Check vertex count consistency
             if len(fobj['vertices']) != len(obj.data.vertices):
-                print(f"Warning: Vertex count differs for object '{base_name}' in frame {frame_index}. Skipping shape key.")
+                print(f"Warning: Vertex count differs for object '{base_name}' in frame {frame_index}. Skipping attribute assignment.")
                 continue
 
             # Animate transform
             if fobj['matrix'] is not None:
                 set_object_transform(obj, fobj['matrix'])
                 keyframe_object_transform(obj, frame_index)
+
+            # Assign attributes for this frame
+            if 'object_id' in fobj['attributes']:
+                object_id_attr = obj.data.attributes.get("object_id")
+                if object_id_attr:
+                    obj_object_id = fobj['attributes']['object_id']
+                    if len(obj_object_id) == len(obj.data.vertices):
+                        for i, val in enumerate(obj_object_id):
+                            object_id_attr.data[i].value = val
+                    else:
+                        print(f"Warning: 'object_id' length does not match vertex count for object '{base_name}' in frame {frame_index}. Skipping 'object_id' assignment.")
+
+            if 'vertex_id' in fobj['attributes']:
+                vertex_id_attr = obj.data.attributes.get("vertex_id")
+                if vertex_id_attr:
+                    obj_vertex_id = fobj['attributes']['vertex_id']
+                    if len(obj_vertex_id) == len(obj.data.vertices):
+                        for i, val in enumerate(obj_vertex_id):
+                            vertex_id_attr.data[i].value = val
+                    else:
+                        print(f"Warning: 'vertex_id' length does not match vertex count for object '{base_name}' in frame {frame_index}. Skipping 'vertex_id' assignment.")
+
+            if 'timestep' in fobj['attributes']:
+                timestep_attr = obj.data.attributes.get("timestep")
+                if timestep_attr:
+                    obj_timestep = fobj['attributes']['timestep']
+                    if len(obj_timestep) == len(obj.data.vertices):
+                        for i, val in enumerate(obj_timestep):
+                            timestep_attr.data[i].value = val
+                    else:
+                        print(f"Warning: 'timestep' length does not match vertex count for object '{base_name}' in frame {frame_index}. Skipping 'timestep' assignment.")
 
             # If it's not the first frame, create shape key for geometry
             if frame_index > 1:
@@ -218,6 +286,6 @@ def import_obj_sequence_animated_all_objects(folder):
 
     print("Import of all OBJ objects as animated objects complete.")
 
-
-input_folder = "/Users/williambittner/Documents/Blender/data_generator/obj_sequence"
+# Configure import
+input_folder = "/Users/williambittner/Documents/Blender/data_generator/orbit_obj_sequence_1"
 import_obj_sequence_animated_all_objects(input_folder)

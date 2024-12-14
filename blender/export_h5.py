@@ -3,6 +3,77 @@ import os
 import h5py
 import numpy as np
 
+
+
+"""
+HDF5 File: sequence_1.h5
+├── frame_0001
+│   ├── Cube
+│   │   ├── vertices               # Vertex positions for "Cube" at frame 1
+│   │   ├── faces                  # Face vertex indices for "Cube" at frame 1
+│   │   ├── attributes             # Subgroup for custom vertex attributes
+│   │   │   ├── object_id          # Example attribute for object IDs
+│   │   │   ├── vertex_id          # Example attribute for vertex IDs
+│   │   │   └── timestep           # Example attribute for timesteps
+│   │   └── transformation_matrix  # Transformation matrix for "Cube" at frame 1
+│   └── Sphere
+│       ├── vertices               # Vertex positions for "Sphere" at frame 1
+│       ├── faces                  # Face vertex indices for "Sphere" at frame 1
+│       ├── attributes             # Subgroup for custom vertex attributes
+│       │   ├── object_id
+│       │   ├── vertex_id
+│       │   └── timestep
+│       └── transformation_matrix  # Transformation matrix for "Sphere" at frame 1
+├── frame_0002
+│   ├── Cube
+│   │   ├── vertices
+│   │   ├── faces
+│   │   ├── attributes
+│   │   │   ├── object_id
+│   │   │   ├── vertex_id
+│   │   │   └── timestep
+│   │   └── transformation_matrix
+│   └── Sphere
+│       ├── vertices
+│       ├── faces
+│       ├── attributes
+│       │   ├── object_id
+│       │   ├── vertex_id
+│       │   └── timestep
+│       └── transformation_matrix
+...
+├── frame_0100
+
+
+
+
+vertices:
+[[x1, y1, z1],
+ [x2, y2, z2],
+ ...
+]
+
+faces:
+[[v1, v2, v3],
+ [v4, v5, v6],
+ ...
+]
+
+attributes:
+"attributes/object_id": [id1, id2, id3, ...]
+"attributes/vertex_id": [id1, id2, id3, ...]
+
+transformation_matrix:
+[[m11, m12, m13, m14],
+ [m21, m22, m23, m24],
+ [m31, m32, m33, m34],
+ [m41, m42, m43, m44]]
+
+
+"""
+
+
+
 def export_transformed_objects_to_hdf5(output_file, total_frames, object_names=None, tracked_attributes=None):
     # Create the HDF5 file
     with h5py.File(output_file, 'w') as h5file:
@@ -66,15 +137,15 @@ def export_transformed_objects_to_hdf5(output_file, total_frames, object_names=N
     print(f"Exported {total_frames} frames to HDF5 file: {output_file}")
 
 # Example of running multiple sequences
-base_output_folder = "/Users/williambittner/Documents/Blender/data_generator/damped_orbit_h5"
-total_frames = 100
+base_output_folder = "/Users/williambittner/Documents/Blender/data_generator/medium_damped_orbit_h5"
+total_frames = 2000
 tracked_attributes = ["object_id", "vertex_id", "timestep"]
 
 # The name of your geometry nodes modifier
 gn_modifier_name = "GM_Sphere"  # Change this to match your actual modifier name
 
 # Number of sequences and their seed values
-number_of_sequences = 10
+number_of_sequences = 300
 for seq in range(number_of_sequences):
     # Ensure the base output directory exists
     os.makedirs(base_output_folder, exist_ok=True)

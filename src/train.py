@@ -9,31 +9,11 @@ import numpy as np
 # Local Imports
 from config import Config
 from trainer import Trainer
-from visualization import create_plotly_figure, log_visualization
+from visualization import create_plotly_figure, log_visualization, log_dataset_visualizations
 from dataloader import PointcloudH5Dataset
 from model import PointTransformer
 from pointcloud import DynamicPointcloud
 
-
-def log_dataset_visualizations(dataset, num_sequences=5, prefix=""):
-    """
-    Log visualizations for multiple sequences from a dataset.
-    
-    Args:
-        dataset: Dataset containing sequences
-        num_sequences: Number of sequences to visualize
-        prefix: Prefix for wandb logging key (e.g., "train" or "test")
-    """
-    for i in range(min(num_sequences, len(dataset.sequence_files))):
-        sequence_path = os.path.join(dataset.split_dir, dataset.sequence_files[i])
-        dyn_pc = DynamicPointcloud()
-        dyn_pc.load_h5_sequence(sequence_path)
-
-        fig = create_plotly_figure(dyn_pc)
-        html_str = fig.to_html(full_html=False, include_plotlyjs='cdn')
-        wandb.log({
-            f"{prefix}sequence_{i}": wandb.Html(html_str, inject=False)
-        })
 
 
 def train(config: Config):
@@ -125,11 +105,11 @@ def train(config: Config):
         scheduler.step()
 
         # Log visualization
-        if (epoch + 1) % config.viz_iter == 0:
+        if (epoch + 1) % config.viz_iter == 0 or epoch == config.epochs - 1 or epoch == 0:
             log_visualization(model, test_dataset, device, config, epoch)
             
         # Save model checkpoint
-        if (epoch + 1) % config.save_model_checkpoint_iter == 0:
+        if (epoch + 1) % config.save_model_checkpoint_iter == 0 or epoch == config.epochs - 1:
             checkpoint_path = os.path.join(
                 config.model_checkpoint_dir, 
                 config.dataset_name,

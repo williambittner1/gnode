@@ -67,7 +67,7 @@ def create_plotly_figure(dyn_pcs_list, dyn_pcs_names_list, point_size=1, colors=
                 {
                     'label': 'Play',
                     'method': 'animate',
-                    'args': [None, {'frame': {'duration': 50, 'redraw': True}, 'fromcurrent': True}]
+                    'args': [None, {'frame': {'duration': 33, 'redraw': True}, 'fromcurrent': True}]  # Set duration for 30 FPS
                 },
                 {
                     'label': 'Pause',
@@ -114,52 +114,22 @@ def log_visualization(model, test_dataset, device, config, epoch):
     print(f"Logged prediction visualization for epoch {epoch}")
 
 
-def log_pointcloud_sequence(dyn_pcs, log_frequency=10, name_prefix="pointcloud"):
-    """Log multiple dynamic pointclouds to wandb using Object3D.
+def log_dataset_visualizations(dataset, num_sequences=5, prefix=""):
+    """
+    Log visualizations for multiple gt-sequences from a dataset (train or test).
     
     Args:
-        dyn_pcs: List of DynamicPointcloud objects to compare
-        log_frequency: Log every nth frame
-        name_prefix: Prefix for the logged pointcloud names
+        dataset: Dataset containing sequences
+        num_sequences: Number of sequences to visualize
+        prefix: Prefix for wandb logging key (e.g., "train" or "test")
     """
-    # Get all frame numbers and sort them
-    all_frames = [sorted(pc.frames.keys()) for pc in dyn_pcs]
-    frame_nums = sorted(set.intersection(*[set(f) for f in all_frames]))
-    
-    # Default colors for different pointclouds
-    colors = [(0, 0, 255), (255, 0, 0), (0, 255, 0), (255, 0, 255)]
-    
-    for frame_num in frame_nums[::log_frequency]:
-        frame_data = {}
-        
-        for i, dyn_pc in enumerate(dyn_pcs):
-            pc = dyn_pc.frames[frame_num]
-            # Ensure points are numpy array
-            points = np.array(pc.positions, dtype=np.float32)
-            if points is None or len(points) == 0:
-                continue
-                
-            # Create colored points array
-            color = np.tile(colors[i % len(colors)], (len(points), 1)).astype(np.uint8)
-            
-            # Create Object3D data
-            obj3d_data = {
-                "type": "lidar/beta",
-                "points": points,
-                "colors": color,
-                "boxes": None
-            }
-            
-            try:
-                frame_data[f"{name_prefix}_{i}"] = wandb.Object3D(obj3d_data)
-            except Exception as e:
-                print(f"Error creating Object3D for frame {frame_num}, pointcloud {i}: {e}")
-                print(f"Points shape: {points.shape}, Colors shape: {color.shape}")
-                continue
-        
-        # Add frame metadata
-        frame_data["frame"] = frame_num
-        
-        # Only log if we have valid data
-        if len(frame_data) > 1:  # More than just the frame number
-            wandb.log(frame_data)
+    for i in range(min(num_sequences, len(dataset.sequence_files))):
+        sequence_path = os.path.join(dataset.split_dir, dataset.sequence_files[i])
+        dyn_pc = DynamicPointcloud()
+        dyn_pc.load_h5_sequence(sequence_path)
+
+        fig = create_plotly_figure(dyn_pc)
+        html_str = fig.to_html(full_html=False, include_plotlyjs='cdn')
+        wandb.log({
+            f"{prefix}sequence_{i}": wandb.Html(html_str, inject=False)
+        })
