@@ -82,3 +82,5 @@ class Trainer:
             if epoch == epochs - 1:
                 torch.save(self.model.state_dict(), f"{self.model_checkpoint_folder}/{self.model_checkpoint_name}.pth")
                 print(f"Final checkpoint saved at epoch {epoch + 1}")
+
+

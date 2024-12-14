@@ -1,9 +1,9 @@
 import os
 import numpy as np
-import plotly.graph_objects as go
+import h5py
 import torch
 from torch.utils.data import Dataset
-
+import plotly.graph_objects as go
 
 class Pointcloud:
     """Container for frame data: positions, object_id, vertex_id."""
@@ -11,139 +11,261 @@ class Pointcloud:
         self.positions = np.array([])  # (N, 3)
         self.object_id = None          # (N,)
         self.vertex_id = None          # (N,)
+        self.faces = None              # (F, 3/4)
+        self.transform = None          # (4, 4)
 
+    def to_plotly_trace(self, name='points', color=None, size=5):
+        """Convert pointcloud to plotly scatter3d trace."""
+        if color is None:
+            color = self.object_id if self.object_id is not None else 'blue'
+        
+        # Create hover text with all available attributes
+        hover_text = []
+        for i in range(len(self.positions)):
+            point_info = [f"x: {self.positions[i, 0]:.3f}",
+                         f"y: {self.positions[i, 1]:.3f}",
+                         f"z: {self.positions[i, 2]:.3f}"]
+            
+            if self.object_id is not None:
+                point_info.append(f"object_id: {self.object_id[i]}")
+            if self.vertex_id is not None:
+                point_info.append(f"vertex_id: {self.vertex_id[i]}")
+                
+            hover_text.append("<br>".join(point_info))
+            
+        return go.Scatter3d(
+            x=self.positions[:, 0],
+            y=self.positions[:, 1],
+            z=self.positions[:, 2],
+            mode='markers',
+            marker=dict(
+                size=size,
+                color=color,
+                colorscale='Viridis',
+            ),
+            name=name,
+            hovertext=hover_text,
+            hoverinfo='text'
+        )
 
 class DynamicPointcloud:
+    """Container for sequence of Pointcloud frames."""
     def __init__(self):
-        # frames[frame_index] = Pointcloud instance
-        self.frames = {}
+        self.frames = {}  # Dictionary of frame_number: Pointcloud
 
-    def parse_obj_file(self, filepath):
+    def load_h5_sequence(self, h5_filepath):
         """
-        Parse a single .obj file with multiple objects.
-        Each object:
-         - Has its own set of vertices
-         - Has its own transformation matrix
-         - Has its own object_id and vertex_id arrays
-        After parsing all objects, combine them into a single Pointcloud.
+        Load a sequence from an H5 file.
+        H5 Structure:
+        - frame_0001/
+            - object_1/
+                - vertices
+                - faces
+                - attributes/
+                    - object_id
+                    - vertex_id
+                    - timestep
+                - transformation_matrix
+            - object_2/
+                ...
         """
+        with h5py.File(h5_filepath, 'r') as h5file:
+            # Process each frame
+            for frame_name in sorted(h5file.keys()):
+                frame_num = int(frame_name.split('_')[1])
+                frame_group = h5file[frame_name]
+                
+                # Create new Pointcloud for this frame
+                pc = Pointcloud()
+                
+                # Lists to collect data from all objects
+                all_positions = []
+                all_object_ids = []
+                all_vertex_ids = []
+                all_faces = []
+                
+                # Process each object in the frame
+                for obj_name in frame_group.keys():
+                    obj_group = frame_group[obj_name]
+                    
+                    # Get vertices
+                    vertices = np.array(obj_group['vertices'])
+                    
+                    # Apply transformation if it exists
+                    if 'transformation_matrix' in obj_group:
+                        transform = np.array(obj_group['transformation_matrix'])
+                        # Apply transformation to vertices
+                        homogeneous_vertices = np.ones((vertices.shape[0], 4))
+                        homogeneous_vertices[:, :3] = vertices
+                        transformed_vertices = (transform @ homogeneous_vertices.T).T[:, :3]
+                        vertices = transformed_vertices
+                    
+                    # Get faces
+                    if 'faces' in obj_group:
+                        faces = np.array(obj_group['faces'])
+                        all_faces.append(faces)
+                    
+                    # Get attributes if they exist
+                    if 'attributes' in obj_group:
+                        attr_group = obj_group['attributes']
+                        num_vertices = vertices.shape[0]
+                        
+                        if 'object_id' in attr_group:
+                            object_ids = np.array(attr_group['object_id'])
+                        else:
+                            object_ids = np.zeros(num_vertices, dtype=int)
+                            
+                        if 'vertex_id' in attr_group:
+                            vertex_ids = np.array(attr_group['vertex_id'])
+                        else:
+                            vertex_ids = np.arange(num_vertices, dtype=int)
+                    else:
+                        object_ids = np.zeros(vertices.shape[0], dtype=int)
+                        vertex_ids = np.arange(vertices.shape[0], dtype=int)
+                    
+                    # Append to collection lists
+                    all_positions.append(vertices)
+                    all_object_ids.append(object_ids)
+                    all_vertex_ids.append(vertex_ids)
+                
+                # Combine all object data
+                pc.positions = np.concatenate(all_positions, axis=0)
+                pc.object_id = np.concatenate(all_object_ids, axis=0)
+                pc.vertex_id = np.concatenate(all_vertex_ids, axis=0)
+                if all_faces:
+                    pc.faces = np.concatenate(all_faces, axis=0)
+                
+                # Store frame
+                self.frames[frame_num] = pc
 
-        # Data structures for multiple objects
-        objects_positions = []
-        objects_object_id = []
-        objects_vertex_id = []
+    def to_plotly_figure(self, point_size=1):
+        """Create an animated plotly figure from the sequence."""
+        frames = []
+        
+        # Get all frame numbers and sort them
+        frame_nums = sorted(self.frames.keys())
+        
+        # Create frames
+        for frame_num in frame_nums:
+            pc = self.frames[frame_num]
+            frame = go.Frame(
+                data=[pc.to_plotly_trace(size=point_size)],
+                name=f"frame_{frame_num}"
+            )
+            frames.append(frame)
+        
+        # Create figure with the first frame
+        fig = go.Figure(
+            data=frames[0].data,
+            frames=frames[1:]
+        )
+        
+        # Update layout with both play and pause buttons
+        fig.update_layout(
+            scene=dict(
+                aspectmode='cube',
+                xaxis=dict(range=[-12, 12]),
+                yaxis=dict(range=[-12, 12]),
+                zaxis=dict(range=[-12, 12])
+            ),
+            updatemenus=[{
+                'type': 'buttons',
+                'showactive': False,
+                'buttons': [
+                    {
+                        'label': 'Play',
+                        'method': 'animate',
+                        'args': [None, {'frame': {'duration': 40, 'redraw': True}, 'fromcurrent': True}]
+                    },
+                    {
+                        'label': 'Pause',
+                        'method': 'animate',
+                        'args': [[None], {'frame': {'duration': 0, 'redraw': False}, 'mode': 'immediate'}]
+                    }
+                ]
+            }],
+            sliders=[{
+                'currentvalue': {'prefix': 'Frame: '},
+                'steps': [
+                    {
+                        'method': 'animate',
+                        'label': str(frame_num),
+                        'args': [[f"frame_{frame_num}"], {'frame': {'duration': 0, 'redraw': True}}]
+                    }
+                    for frame_num in frame_nums
+                ]
+            }]
+        )
+        
+        return fig
 
-        # Temporary storage while parsing each object
-        vertex_coords = []
-        current_vertex_attributes = {}
-        current_transform = np.eye(4)
-        current_attr_name = None
-        reading_matrix = False
-        matrix_lines = []
-        parsing_object = False
-
-        def finalize_object():
-            nonlocal vertex_coords, current_vertex_attributes, current_transform, parsing_object
-            if not parsing_object:
-                return
-            if vertex_coords:
-                # Apply transform to the object's vertices
-                positions = self.apply_transform(np.array(vertex_coords, dtype=float), current_transform)
-                N = positions.shape[0]
-
-                # Extract attributes
-                if "object_id" in current_vertex_attributes:
-                    object_id = np.array(current_vertex_attributes["object_id"], dtype=int)
-                else:
-                    object_id = np.zeros(N, dtype=int)
-
-                if "vertex_id" in current_vertex_attributes:
-                    vertex_id = np.array(current_vertex_attributes["vertex_id"], dtype=int)
-                else:
-                    vertex_id = np.arange(N, dtype=int)
-
-                # Store for later concatenation
-                objects_positions.append(positions)
-                objects_object_id.append(object_id)
-                objects_vertex_id.append(vertex_id)
-
-            # Reset for next object
-            vertex_coords.clear()
-            current_vertex_attributes.clear()
-            parsing_object = False
-            # transform reset when a new object starts, so no need here
-
-        with open(filepath, 'r') as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-
-                if line.startswith("# Object:"):
-                    # Finalize previous object if any
-                    finalize_object()
-                    parsing_object = True
-                    # Reset transform and attributes for the new object
-                    current_transform = np.eye(4)
-
-                elif line.startswith("v "):
-                    # Vertex line
-                    parts = line.split()
-                    x, y, z = float(parts[1]), float(parts[2]), float(parts[3])
-                    vertex_coords.append((x, y, z))
-
-                elif line.startswith("# Custom Vertex Attributes:"):
-                    current_attr_name = None
-
-                elif line.startswith("# object_id"):
-                    current_attr_name = "object_id"
-                    if current_attr_name not in current_vertex_attributes:
-                        current_vertex_attributes[current_attr_name] = []
-
-                elif line.startswith("# vertex_id"):
-                    current_attr_name = "vertex_id"
-                    if current_attr_name not in current_vertex_attributes:
-                        current_vertex_attributes[current_attr_name] = []
-
-                elif line.startswith("# va "):
-                    # Vertex attribute line
-                    parts = line.split()
-                    val = int(parts[2])
-                    if current_attr_name is not None:
-                        current_vertex_attributes[current_attr_name].append(val)
-
-                elif line.startswith("# Transformation Matrix:"):
-                    reading_matrix = True
-                    matrix_lines = []
-
-                elif reading_matrix and line.startswith("#"):
-                    parts = line.split()
-                    if len(parts) == 5:  # "# x y z w"
-                        row = [float(p) for p in parts[1:5]]
-                        matrix_lines.append(row)
-                        if len(matrix_lines) == 4:
-                            current_transform = np.array(matrix_lines)
-                            reading_matrix = False
-
-        # Finalize last object
-        finalize_object()
-
-        # Combine all objects in this frame
-        if objects_positions:
-            all_positions = np.vstack(objects_positions)
-            all_object_id = np.concatenate(objects_object_id)
-            all_vertex_id = np.concatenate(objects_vertex_id)
-        else:
-            all_positions = np.empty((0,3))
-            all_object_id = np.zeros(0, dtype=int)
-            all_vertex_id = np.arange(0, dtype=int)
-
-        pc = Pointcloud()
-        pc.positions = all_positions
-        pc.object_id = all_object_id
-        pc.vertex_id = all_vertex_id
-
-        return pc
+    def create_comparison_figure(self, pred_dyn_pc, point_size=1):
+        """Create a figure comparing ground truth and predicted pointclouds."""
+        frames = []
+        
+        # Get all frame numbers and sort them
+        gt_frames = sorted(self.frames.keys())
+        pred_frames = sorted(pred_dyn_pc.frames.keys())
+        frame_nums = sorted(set(gt_frames) & set(pred_frames))
+        
+        # Create frames
+        for frame_num in frame_nums:
+            gt_pc = self.frames[frame_num]
+            pred_pc = pred_dyn_pc.frames[frame_num]
+            
+            frame = go.Frame(
+                data=[
+                    gt_pc.to_plotly_trace(name='ground truth', color='blue', size=point_size),
+                    pred_pc.to_plotly_trace(name='prediction', color='red', size=point_size)
+                ],
+                name=f"frame_{frame_num}"
+            )
+            frames.append(frame)
+        
+        # Create figure with the first frame
+        fig = go.Figure(
+            data=frames[0].data,
+            frames=frames[1:]
+        )
+        
+        # Update layout with both play and pause buttons
+        fig.update_layout(
+            scene=dict(
+                aspectmode='cube',
+                xaxis=dict(range=[-12, 12]),
+                yaxis=dict(range=[-12, 12]),
+                zaxis=dict(range=[-12, 12]),
+            ),
+            updatemenus=[{
+                'type': 'buttons',
+                'showactive': False,
+                'buttons': [
+                    {
+                        'label': 'Play',
+                        'method': 'animate',
+                        'args': [None, {'frame': {'duration': 50, 'redraw': True}, 'fromcurrent': True}]
+                    },
+                    {
+                        'label': 'Pause',
+                        'method': 'animate',
+                        'args': [[None], {'frame': {'duration': 0, 'redraw': False}, 'mode': 'immediate'}]
+                    }
+                ]
+            }],
+            sliders=[{
+                'currentvalue': {'prefix': 'Frame: '},
+                'steps': [
+                    {
+                        'method': 'animate',
+                        'label': str(frame_num),
+                        'args': [[f"frame_{frame_num}"], {'frame': {'duration': 0, 'redraw': True}}]
+                    }
+                    for frame_num in frame_nums
+                ]
+            }]
+        )
+        
+        return fig
 
     @classmethod
     def from_sequence(cls, position_sequence):
@@ -167,429 +289,93 @@ class DynamicPointcloud:
             
         return dyn_pc
 
-    def load_obj_sequence(self, directory):
+    def log_visualization_to_wandb(self, name="visualization"):
         """
-        Load a sequence of OBJ files and store them into self.frames.
-        Files should be named so sorting them alphabetically corresponds to correct sequence.
-        """
-        files = [f for f in os.listdir(directory) if f.endswith(".obj")]
-        files.sort()
-        if not files:
-            raise FileNotFoundError("No .obj files found in the directory.")
-
-        for i, fname in enumerate(files, start=1):
-            filepath = os.path.join(directory, fname)
-            self.frames[i] = self.parse_obj_file(filepath)
-
-    def apply_transform(self, positions, transform):
-        """
-        Apply a 4x4 transformation matrix to Nx3 positions.
-        """
-        homogenous_positions = np.hstack([positions, np.ones((positions.shape[0], 1))])
-        transformed = (transform @ homogenous_positions.T).T
-        return transformed[:, :3]
-
-    def to_plotly_figure(self):
-        """
-        Create a Plotly figure animating through frames.
-        Shows x,y,z and attributes.
-        """
-        if not self.frames:
-            raise ValueError("No data loaded. Please load_obj_sequence first.")
-
-        all_frame_indices = sorted(self.frames.keys())
-
-        # Prepare the first frame
-        first_frame_idx = all_frame_indices[0]
-        frame_data = self.frames[first_frame_idx]
-
-        scatter = self._create_scatter(frame_data)
-
-        frames = []
-        for frame_idx in all_frame_indices:
-            fd = self.frames[frame_idx]
-            frame = go.Frame(
-                data=[self._create_scatter(fd)],
-                name=f"Frame {frame_idx}"
-            )
-            frames.append(frame)
-
-        fig = go.Figure(
-            data=[scatter],
-            layout=go.Layout(
-                scene=dict(
-                    aspectmode='cube',
-                    xaxis=dict(range=[-12, 12]),
-                    yaxis=dict(range=[-12, 12]),
-                    zaxis=dict(range=[-12, 12])
-                ),
-                updatemenus=[
-                    dict(
-                        type="buttons",
-                        showactive=False,
-                        buttons=[
-                            dict(
-                                label="Play",
-                                method="animate",
-                                args=[None, dict(frame=dict(duration=100, redraw=True), fromcurrent=True)]
-                            ),
-                            dict(
-                                label="Pause",
-                                method="animate",
-                                args=[[None], dict(mode="immediate", frame=dict(duration=0, redraw=False))]
-                            )
-                        ]
-                    )
-                ],
-                sliders=[
-                    dict(
-                        steps=[
-                            dict(
-                                method="animate",
-                                args=[
-                                    [f"Frame {frame_idx}"],
-                                    dict(mode="immediate", frame=dict(duration=100, redraw=True), transition=dict(duration=0))
-                                ],
-                                label=str(frame_idx)
-                            ) for frame_idx in all_frame_indices
-                        ],
-                        transition=dict(duration=0),
-                        x=0.1,
-                        y=0,
-                        currentvalue=dict(
-                            font=dict(size=16),
-                            prefix="Timeframe: ",
-                            visible=True,
-                            xanchor="center"
-                        ),
-                        len=0.9
-                    )
-                ]
-            ),
-            frames=frames
-        )
-
-        return fig
-
-    def _create_scatter(self, frame_data):
-        """
-        Create a Scatter3d trace for a given Pointcloud (frame_data).
-        Include hover info with attributes.
-        """
-        positions = frame_data.positions
-        hovertemplate = []
-        for i, pos in enumerate(positions):
-            point_info = [
-                f"x: {pos[0]:.2f}",
-                f"y: {pos[1]:.2f}",
-                f"z: {pos[2]:.2f}",
-                f"object_id: {frame_data.object_id[i]}",
-                f"vertex_id: {frame_data.vertex_id[i]}"
-            ]
-            hovertemplate.append("<br>".join(point_info))
-
-        return go.Scatter3d(
-            x=positions[:, 0],
-            y=positions[:, 1],
-            z=positions[:, 2],
-            mode='markers',
-            marker=dict(size=1, color='blue'),
-            hovertemplate="%{text}<extra></extra>",
-            text=hovertemplate
-        )
-
-    def create_comparison_figure(self, other_pc, gt_color='green', pred_color='blue'):
-        """
-        Create a Plotly figure comparing two DynamicPointcloud sequences.
+        Creates and logs a plotly visualization of the pointcloud sequence to wandb.
         
         Args:
-            other_pc: Another DynamicPointcloud instance to compare with
-            gt_color: Color for ground truth points
-            pred_color: Color for predicted points
+            name (str): Name/key for the visualization in wandb (default: "visualization")
         """
-        if not self.frames or not other_pc.frames:
-            raise ValueError("No data loaded in one or both pointclouds")
-
-        all_frame_indices = sorted(self.frames.keys())
+        import wandb  # Import here to avoid requiring wandb for basic usage
         
-        # Create initial scatter plots for both sequences
-        gt_scatter = go.Scatter3d(
-            x=self.frames[all_frame_indices[0]].positions[:, 0],
-            y=self.frames[all_frame_indices[0]].positions[:, 1],
-            z=self.frames[all_frame_indices[0]].positions[:, 2],
-            mode='markers',
-            marker=dict(size=1, color=gt_color),
-            name='Ground Truth'
-        )
-        
-        pred_scatter = go.Scatter3d(
-            x=other_pc.frames[all_frame_indices[0]].positions[:, 0],
-            y=other_pc.frames[all_frame_indices[0]].positions[:, 1],
-            z=other_pc.frames[all_frame_indices[0]].positions[:, 2],
-            mode='markers',
-            marker=dict(size=1, color=pred_color),
-            name='Prediction'
-        )
+        fig = self.to_plotly_figure()
+        html_str = fig.to_html(full_html=False, include_plotlyjs='cdn')
+        wandb.log({
+            name: wandb.Html(html_str, inject=False)
+        })
 
-        frames = []
-        for frame_idx in all_frame_indices:
-            gt_pos = self.frames[frame_idx].positions
-            pred_pos = other_pc.frames[frame_idx].positions
-            
-            frame = go.Frame(
-                data=[
-                    go.Scatter3d(
-                        x=gt_pos[:, 0], y=gt_pos[:, 1], z=gt_pos[:, 2],
-                        mode='markers', marker=dict(size=1, color=gt_color),
-                        name='Ground Truth'
-                    ),
-                    go.Scatter3d(
-                        x=pred_pos[:, 0], y=pred_pos[:, 1], z=pred_pos[:, 2],
-                        mode='markers', marker=dict(size=1, color=pred_color),
-                        name='Prediction'
-                    )
-                ],
-                name=f"Frame {frame_idx}"
-            )
-            frames.append(frame)
-
-        fig = go.Figure(
-            data=[gt_scatter, pred_scatter],
-            layout=go.Layout(
-                scene=dict(
-                    aspectmode='cube',
-                    xaxis=dict(range=[-12, 12]),
-                    yaxis=dict(range=[-12, 12]),
-                    zaxis=dict(range=[-12, 12])
-                ),
-                updatemenus=[dict(
-                    type="buttons",
-                    showactive=False,
-                    buttons=[
-                        dict(
-                            label="Play",
-                            method="animate",
-                            args=[None, dict(frame=dict(duration=100, redraw=True), fromcurrent=True)]
-                        ),
-                        dict(
-                            label="Pause",
-                            method="animate",
-                            args=[[None], dict(mode="immediate", frame=dict(duration=0, redraw=False))]
-                        )
-                    ]
-                )],
-                sliders=[dict(
-                    steps=[
-                        dict(
-                            method="animate",
-                            args=[
-                                [f"Frame {frame_idx}"],
-                                dict(mode="immediate", frame=dict(duration=100, redraw=True), transition=dict(duration=0))
-                            ],
-                            label=str(frame_idx)
-                        ) for frame_idx in all_frame_indices
-                    ],
-                    transition=dict(duration=0),
-                    x=0.1,
-                    y=0,
-                    currentvalue=dict(
-                        font=dict(size=16),
-                        prefix="Timeframe: ",
-                        visible=True,
-                        xanchor="center"
-                    ),
-                    len=0.9
-                )],
-                title="Ground Truth vs Predicted Pointcloud"
-            ),
-            frames=frames
-        )
-
-        return fig
-
-class PointcloudNFrameSequenceDataset(Dataset):
-    def __init__(self, gt_dyn_pc, input_sequence_length=3, output_sequence_length=1, 
-                 use_position=True, use_object_id=True, use_vertex_id=True):
-        """
-        Creates pairs (X_t, Y_t) where X_t includes 'input_sequence_length' consecutive frames
-        and Y_t includes the next 'output_sequence_length' frames.
-        
-        Args:
-            input_sequence_length: number of consecutive frames to use as input
-            output_sequence_length: number of consecutive frames to predict
-        """
-        self.frames = sorted(gt_dyn_pc.frames.keys())
-        self.data_pairs = []
-        self.use_position = use_position
-        self.use_object_id = use_object_id
-        self.use_vertex_id = use_vertex_id
-        self.input_sequence_length = input_sequence_length
-        self.output_sequence_length = output_sequence_length
-
-        # We need at least input_sequence_length + output_sequence_length frames
-        for i in range(len(self.frames) - (input_sequence_length + output_sequence_length - 1)):
-            # Get input sequence frames
-            input_frames = []
-            for j in range(input_sequence_length):
-                t = self.frames[i + j]
-                pc_t = gt_dyn_pc.frames[t]
-                
-                frame_features = []
-                if self.use_position:
-                    frame_features.append(pc_t.positions)
-                if self.use_object_id and pc_t.object_id is not None:
-                    frame_features.append(pc_t.object_id.reshape(-1, 1))
-                if self.use_vertex_id and pc_t.vertex_id is not None:
-                    frame_features.append(pc_t.vertex_id.reshape(-1, 1))
-                
-                frame_data = np.concatenate(frame_features, axis=1)
-                input_frames.append(frame_data)
-
-            # Stack all input frames
-            X_t = np.stack(input_frames, axis=0)  # (input_sequence_length, N, feature_dim)
-
-            # Get output sequence frames
-            output_frames = []
-            for j in range(output_sequence_length):
-                t_next = self.frames[i + input_sequence_length + j]
-                pc_next = gt_dyn_pc.frames[t_next]
-                output_frames.append(pc_next.positions)  # Only predict positions for now
-
-            # Stack all output frames
-            Y_t = np.stack(output_frames, axis=0)  # (output_sequence_length, N, 3)
-
-            self.data_pairs.append((X_t, Y_t))
-
-    def __getitem__(self, idx):
-        X_t, Y_t = self.data_pairs[idx]
-        return torch.tensor(X_t, dtype=torch.float32), torch.tensor(Y_t, dtype=torch.float32)
-    
-    def __len__(self):
-        """Return the total number of samples in the dataset"""
-        return len(self.data_pairs)
-    
-class Pointcloud1FrameSequenceDataset(Dataset):
-    def __init__(self, gt_dyn_pc, use_position=True, use_object_id=True, use_vertex_id=True):
-        """
-        Creates pairs (X_t, Y_t) from consecutive frames.
-        X_t includes chosen features from frame t.
-        Y_t includes the corresponding features from frame t+1.
-        """
-        self.frames = sorted(gt_dyn_pc.frames.keys())
-        self.data_pairs = []
-        self.use_position = use_position
-        self.use_object_id = use_object_id
-        self.use_vertex_id = use_vertex_id
-
-        for i in range(len(self.frames)-1):
-            t = self.frames[i]
-            t_next = self.frames[i+1]
-
-            pc_t = gt_dyn_pc.frames[t]
-            pc_tnext = gt_dyn_pc.frames[t_next]
-
-            pos_t = pc_t.positions  # (N,3)
-            obj_id_t = pc_t.object_id.reshape(-1,1) if pc_t.object_id is not None else None
-            vert_id_t = pc_t.vertex_id.reshape(-1,1) if pc_t.vertex_id is not None else None
-
-            pos_tnext = pc_tnext.positions
-            obj_id_tnext = pc_tnext.object_id.reshape(-1,1) if pc_tnext.object_id is not None else None
-            vert_id_tnext = pc_tnext.vertex_id.reshape(-1,1) if pc_tnext.vertex_id is not None else None
-
-            # Build input features
-            input_features = []
-            if self.use_position:
-                input_features.append(pos_t)
-            if self.use_object_id and obj_id_t is not None:
-                input_features.append(obj_id_t)
-            if self.use_vertex_id and vert_id_t is not None:
-                input_features.append(vert_id_t)
-
-            X_t = np.concatenate(input_features, axis=1) if len(input_features) > 1 else (pos_t if input_features else pos_t)
-
-            # Build output features
-            output_features = []
-            if self.use_position:
-                output_features.append(pos_tnext)
-            # if self.use_object_id and obj_id_tnext is not None:
-            #     output_features.append(obj_id_tnext)
-            # if self.use_vertex_id and vert_id_tnext is not None:
-            #     output_features.append(vert_id_tnext)
-
-            Y_t = np.concatenate(output_features, axis=1) if len(output_features) > 1 else (pos_tnext if output_features else pos_tnext)
-
-            self.data_pairs.append((X_t, Y_t))
-
-    def __len__(self):
-        return len(self.data_pairs)
-
-    def __getitem__(self, idx):
-        X_t, Y_t = self.data_pairs[idx]
-        return torch.tensor(X_t, dtype=torch.float32), torch.tensor(Y_t, dtype=torch.float32)
-
-class PointcloudDataset(Dataset):
+class PointcloudH5Dataset(Dataset):
     def __init__(self, root_dir, split='train', input_sequence_length=3, output_sequence_length=1,
                  use_position=True, use_object_id=True, use_vertex_id=True):
         """
-        Dataset for handling multiple obj_sequence folders.
-        
+        Dataset for loading H5 sequences.
         Args:
-            root_dir: Path to the dataset directory containing 'train' and 'test' folders
-            split: Either 'train' or 'test'
-            input_sequence_length: Number of consecutive frames to use as input
-            output_sequence_length: Number of consecutive frames to predict
+            root_dir: Directory containing train/test splits with H5 files
+            split: 'train' or 'test'
+            input_sequence_length: Number of input frames
+            output_sequence_length: Number of output frames to predict
+            use_position: Include position features
+            use_object_id: Include object_id features
+            use_vertex_id: Include vertex_id features
         """
         self.split_dir = os.path.join(root_dir, split)
-        if not os.path.exists(self.split_dir):
-            raise FileNotFoundError(f"Split directory {self.split_dir} not found")
+        self.sequence_files = [f for f in os.listdir(self.split_dir) if f.endswith('.h5')]
         
-        self.sequence_folders = [f for f in os.listdir(self.split_dir) 
-                               if os.path.isdir(os.path.join(self.split_dir, f)) 
-                               and f.startswith('obj_sequence')]
-        
-        if not self.sequence_folders:
-            raise FileNotFoundError(f"No obj_sequence folders found in {self.split_dir}")
-        
-        self.data_pairs = []
+        self.input_sequence_length = input_sequence_length
+        self.output_sequence_length = output_sequence_length
         self.use_position = use_position
         self.use_object_id = use_object_id
         self.use_vertex_id = use_vertex_id
-        self.input_sequence_length = input_sequence_length
-        self.output_sequence_length = output_sequence_length
+        
+        self.data_pairs = []
         
         # Load all sequences
-        for seq_folder in self.sequence_folders:
-            seq_path = os.path.join(self.split_dir, seq_folder)
+        for h5_file in self.sequence_files:
+            h5_path = os.path.join(self.split_dir, h5_file)
             
             # Load the sequence
             gt_dyn_pc = DynamicPointcloud()
-            gt_dyn_pc.load_obj_sequence(seq_path)
+            gt_dyn_pc.load_h5_sequence(h5_path)
             
-            # Create dataset for this sequence
-            sequence_dataset = PointcloudNFrameSequenceDataset(
-                gt_dyn_pc,
-                input_sequence_length=input_sequence_length,
-                output_sequence_length=output_sequence_length,
-                use_position=use_position,
-                use_object_id=use_object_id,
-                use_vertex_id=use_vertex_id
-            )
+            # Create input-output pairs
+            frames = sorted(gt_dyn_pc.frames.keys())
             
-            # Add all pairs from this sequence
-            self.data_pairs.extend(sequence_dataset.data_pairs)
+            for i in range(len(frames) - (input_sequence_length + output_sequence_length - 1)):
+                # Get input sequence frames
+                input_frames = []
+                for j in range(input_sequence_length):
+                    t = frames[i + j]
+                    pc_t = gt_dyn_pc.frames[t]
+                    
+                    frame_features = []
+                    if self.use_position:
+                        frame_features.append(pc_t.positions)
+                    if self.use_object_id:
+                        frame_features.append(pc_t.object_id.reshape(-1, 1))
+                    if self.use_vertex_id:
+                        frame_features.append(pc_t.vertex_id.reshape(-1, 1))
+                    
+                    frame_data = np.concatenate(frame_features, axis=1)
+                    input_frames.append(frame_data)
+                
+                # Stack all input frames
+                X_t = np.stack(input_frames, axis=0)
+                
+                # Get output sequence frames
+                output_frames = []
+                for j in range(output_sequence_length):
+                    t_next = frames[i + input_sequence_length + j]
+                    pc_next = gt_dyn_pc.frames[t_next]
+                    output_frames.append(pc_next.positions)
+                
+                # Stack all output frames
+                Y_t = np.stack(output_frames, axis=0)
+                
+                self.data_pairs.append((X_t, Y_t))
     
     def __len__(self):
         return len(self.data_pairs)
     
     def __getitem__(self, idx):
         X_t, Y_t = self.data_pairs[idx]
-        return torch.tensor(X_t, dtype=torch.float32), torch.tensor(Y_t, dtype=torch.float32)
-    
-if __name__ == "__main__":
-    input_folder = "data/obj_sequence1"
-
-    gt_pc = DynamicPointcloud()
-    gt_pc.load_obj_sequence(input_folder)
-
-    fig = gt_pc.to_plotly_figure()
-    fig.show()
+        return torch.FloatTensor(X_t), torch.FloatTensor(Y_t) 

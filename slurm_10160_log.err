@@ -1,7 +1,0 @@
-
-The following have been reloaded with a version change:
-  1) all/CUDA/12.1.0 => all/CUDA/11.7.0
-
-wandb: Using wandb-core as the SDK backend. Please refer to https://wandb.me/wandb-core for more information.
-wandb: Currently logged in as: williambittner (william_masterthesis). Use `wandb login --relogin` to force relogin
-slurmstepd: error: *** JOB 10160 ON c2-g4-05 CANCELLED AT 2024-12-12T13:35:39 ***

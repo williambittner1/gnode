@@ -1,629 +1,0 @@
-
------------------------ /usr/share/lmod/lmod/modulefiles -----------------------
-   Core/lmod/6.6    Core/settarg/6.6
-
----------------------------- /apps/software/modules ----------------------------
-   ai/PyTorch/2.1.2-foss-2023b
-   all/Abseil/20240116.1-GCCcore-13.2.0
-   all/Autoconf/2.71-GCCcore-11.3.0
-   all/Autoconf/2.71-GCCcore-12.2.0
-   all/Autoconf/2.71-GCCcore-12.3.0
-   all/Autoconf/2.71-GCCcore-13.2.0
-   all/Autoconf/2.71                              (D)
-   all/Automake/1.16.5-GCCcore-11.3.0
-   all/Automake/1.16.5-GCCcore-12.2.0
-   all/Automake/1.16.5-GCCcore-12.3.0
-   all/Automake/1.16.5-GCCcore-13.2.0
-   all/Automake/1.16.5                            (D)
-   all/Autotools/20220317-GCCcore-11.3.0
-   all/Autotools/20220317-GCCcore-12.2.0
-   all/Autotools/20220317-GCCcore-12.3.0
-   all/Autotools/20220317-GCCcore-13.2.0
-   all/Autotools/20220317                         (D)
-   all/BLIS/0.9.0-GCC-12.3.0
-   all/BLIS/0.9.0-GCC-13.2.0                      (D)
-   all/Bison/3.8.2-GCCcore-11.3.0
-   all/Bison/3.8.2-GCCcore-12.2.0
-   all/Bison/3.8.2-GCCcore-12.3.0
-   all/Bison/3.8.2-GCCcore-13.2.0
-   all/Bison/3.8.2                                (D)
-   all/Brotli/1.0.9-GCCcore-12.2.0
-   all/Brotli/1.1.0-GCCcore-13.2.0                (D)
-   all/CMake/3.24.3-GCCcore-12.2.0
-   all/CMake/3.26.3-GCCcore-12.3.0
-   all/CMake/3.27.6-GCCcore-13.2.0                (D)
-   all/CUDA/11.3.1
-   all/CUDA/11.4.2
-   all/CUDA/11.5.0
-   all/CUDA/11.5.2
-   all/CUDA/11.6.0
-   all/CUDA/11.7.0
-   all/CUDA/11.8.0
-   all/CUDA/12.1.0                                (L)
-   all/CUDA/12.2.0
-   all/CUDA/12.3.0
-   all/CUDA/12.4.0                                (D)
-   all/Catch2/2.13.9-GCCcore-12.3.0
-   all/Catch2/2.13.9-GCCcore-13.2.0               (D)
-   all/DB/18.1.40-GCCcore-11.3.0
-   all/DB/18.1.40-GCCcore-12.2.0                  (D)
-   all/Doxygen/1.9.5-GCCcore-12.2.0
-   all/Doxygen/1.9.8-GCCcore-13.2.0               (D)
-   all/Eigen/3.4.0-GCCcore-12.3.0
-   all/Eigen/3.4.0-GCCcore-13.2.0                 (D)
-   all/FFTW/3.3.10-GCC-12.3.0
-   all/FFTW/3.3.10-GCC-13.2.0                     (D)
-   all/FFTW.MPI/3.3.10-gompi-2023a
-   all/FFTW.MPI/3.3.10-gompi-2023b                (D)
-   all/FFmpeg/6.0-GCCcore-13.2.0
-   all/FlexiBLAS/3.3.1-GCC-12.3.0
-   all/FlexiBLAS/3.3.1-GCC-13.2.0                 (D)
-   all/FriBidi/1.0.13-GCCcore-13.2.0
-   all/GCC/12.3.0
-   all/GCC/13.2.0                                 (D)
-   all/GCCcore/11.3.0
-   all/GCCcore/12.2.0
-   all/GCCcore/12.3.0
-   all/GCCcore/13.2.0                             (D)
-   all/GMP/6.2.1-GCCcore-12.2.0
-   all/GMP/6.3.0-GCCcore-13.2.0                   (D)
-   all/LAME/3.100-GCCcore-13.2.0
-   all/LibTIFF/4.6.0-GCCcore-13.2.0
-   all/LittleCMS/2.15-GCCcore-13.2.0
-   all/M4/1.4.18
-   all/M4/1.4.19-GCCcore-11.3.0
-   all/M4/1.4.19-GCCcore-12.2.0
-   all/M4/1.4.19-GCCcore-12.3.0
-   all/M4/1.4.19-GCCcore-13.2.0
-   all/M4/1.4.19                                  (D)
-   all/MPC/1.3.1-GCCcore-13.2.0
-   all/MPFR/4.2.1-GCCcore-13.2.0
-   all/Meson/0.64.0-GCCcore-12.2.0
-   all/Meson/1.2.3-GCCcore-13.2.0                 (D)
-   all/NASM/2.16.01-GCCcore-13.2.0
-   all/Ninja/1.11.1-GCCcore-12.2.0
-   all/Ninja/1.11.1-GCCcore-12.3.0
-   all/Ninja/1.11.1-GCCcore-13.2.0                (D)
-   all/OpenBLAS/0.3.23-GCC-12.3.0
-   all/OpenBLAS/0.3.24-GCC-13.2.0                 (D)
-   all/OpenJPEG/2.5.0-GCCcore-13.2.0
-   all/OpenMPI/4.1.5-GCC-12.3.0
-   all/OpenMPI/4.1.6-GCC-13.2.0                   (D)
-   all/OpenSSL/1.1
-   all/PMIx/4.2.4-GCCcore-12.3.0
-   all/PMIx/4.2.6-GCCcore-13.2.0                  (D)
-   all/Perl/5.34.1-GCCcore-11.3.0
-   all/Perl/5.36.0-GCCcore-12.2.0
-   all/Perl/5.36.1-GCCcore-12.3.0
-   all/Perl/5.38.0-GCCcore-13.2.0                 (D)
-   all/Perl-bundle-CPAN/5.38.0-GCCcore-13.2.0
-   all/Pillow/10.2.0-GCCcore-13.2.0
-   all/PyTorch/2.1.2-foss-2023b
-   all/PyYAML/6.0.1-GCCcore-13.2.0
-   all/Python/3.10.8-GCCcore-12.2.0-bare
-   all/Python/3.10.8-GCCcore-12.2.0
-   all/Python/3.11.3-GCCcore-12.3.0
-   all/Python/3.11.5-GCCcore-13.2.0               (D)
-   all/Python-bundle-PyPI/2023.06-GCCcore-12.3.0
-   all/Python-bundle-PyPI/2023.10-GCCcore-13.2.0  (D)
-   all/Rust/1.65.0-GCCcore-12.2.0
-   all/Rust/1.70.0-GCCcore-12.3.0
-   all/Rust/1.73.0-GCCcore-13.2.0                 (D)
-   all/SDL2/2.28.5-GCCcore-13.2.0
-   all/SQLite/3.39.4-GCCcore-12.2.0
-   all/SQLite/3.42.0-GCCcore-12.3.0
-   all/SQLite/3.43.1-GCCcore-13.2.0               (D)
-   all/ScaLAPACK/2.2.0-gompi-2023a-fb
-   all/ScaLAPACK/2.2.0-gompi-2023b-fb             (D)
-   all/SciPy-bundle/2023.11-gfbf-2023b
-   all/Tcl/8.6.12-GCCcore-12.2.0
-   all/Tcl/8.6.13-GCCcore-12.3.0
-   all/Tcl/8.6.13-GCCcore-13.2.0                  (D)
-   all/UCC/1.2.0-GCCcore-12.3.0
-   all/UCC/1.2.0-GCCcore-13.2.0                   (D)
-   all/UCX/1.14.1-GCCcore-12.3.0
-   all/UCX/1.15.0-GCCcore-13.2.0                  (D)
-   all/UnZip/6.0-GCCcore-12.2.0
-   all/UnZip/6.0-GCCcore-12.3.0
-   all/UnZip/6.0-GCCcore-13.2.0                   (D)
-   all/X11/20221110-GCCcore-12.2.0
-   all/X11/20231019-GCCcore-13.2.0                (D)
-   all/XZ/5.2.5-GCCcore-11.3.0
-   all/XZ/5.2.7-GCCcore-12.2.0
-   all/XZ/5.4.2-GCCcore-12.3.0
-   all/XZ/5.4.4-GCCcore-13.2.0                    (D)
-   all/Yasm/1.3.0-GCCcore-13.2.0
-   all/Z3/4.13.0-GCCcore-13.2.0
-   all/binutils/2.38-GCCcore-11.3.0
-   all/binutils/2.38
-   all/binutils/2.39-GCCcore-12.2.0
-   all/binutils/2.39
-   all/binutils/2.40-GCCcore-12.3.0
-   all/binutils/2.40-GCCcore-13.2.0
-   all/binutils/2.40                              (D)
-   all/bzip2/1.0.8-GCCcore-12.2.0
-   all/bzip2/1.0.8-GCCcore-12.3.0
-   all/bzip2/1.0.8-GCCcore-13.2.0                 (D)
-   all/cURL/7.86.0-GCCcore-12.2.0
-   all/cURL/8.0.1-GCCcore-12.3.0
-   all/cURL/8.3.0-GCCcore-13.2.0                  (D)
-   all/cffi/1.15.1-GCCcore-12.3.0
-   all/cffi/1.15.1-GCCcore-13.2.0                 (D)
-   all/cryptography/41.0.1-GCCcore-12.3.0
-   all/cryptography/41.0.5-GCCcore-13.2.0         (D)
-   all/cuDNN/8.4.1.50-CUDA-11.7.0
-   all/cuDNN/8.9.7.29-CUDA-12.3.0                 (D)
-   all/expat/2.4.8-GCCcore-11.3.0
-   all/expat/2.4.9-GCCcore-12.2.0
-   all/expat/2.5.0-GCCcore-12.3.0
-   all/expat/2.5.0-GCCcore-13.2.0                 (D)
-   all/expecttest/0.2.1-GCCcore-13.2.0
-   all/ffnvcodec/12.1.14.0
-   all/flex/2.6.4-GCCcore-11.3.0
-   all/flex/2.6.4-GCCcore-12.2.0
-   all/flex/2.6.4-GCCcore-12.3.0
-   all/flex/2.6.4-GCCcore-13.2.0
-   all/flex/2.6.4                                 (D)
-   all/flit/3.9.0-GCCcore-12.3.0
-   all/flit/3.9.0-GCCcore-13.2.0                  (D)
-   all/fontconfig/2.14.1-GCCcore-12.2.0
-   all/fontconfig/2.14.2-GCCcore-13.2.0           (D)
-   all/foss/2023a
-   all/foss/2023b                                 (D)
-   all/freetype/2.12.1-GCCcore-12.2.0
-   all/freetype/2.13.2-GCCcore-13.2.0             (D)
-   all/gettext/0.21
-   all/gettext/0.21.1-GCCcore-12.2.0
-   all/gettext/0.21.1-GCCcore-12.3.0
-   all/gettext/0.21.1
-   all/gettext/0.22-GCCcore-13.2.0
-   all/gettext/0.22                               (D)
-   all/gfbf/2023b
-   all/giflib/5.2.1-GCCcore-13.2.0
-   all/git/2.38.1-GCCcore-12.2.0-nodocs
-   all/git/2.41.0-GCCcore-12.3.0-nodocs
-   all/git/2.42.0-GCCcore-13.2.0                  (D)
-   all/gmpy2/2.1.5-GCC-13.2.0
-   all/gompi/2023a
-   all/gompi/2023b                                (D)
-   all/gperf/3.1-GCCcore-12.2.0
-   all/gperf/3.1-GCCcore-13.2.0                   (D)
-   all/groff/1.22.4-GCCcore-11.3.0
-   all/groff/1.22.4-GCCcore-12.2.0
-   all/groff/1.23.0-GCCcore-13.2.0                (D)
-   all/gzip/1.13-GCCcore-13.2.0
-   all/hatchling/1.18.0-GCCcore-12.3.0
-   all/hatchling/1.18.0-GCCcore-13.2.0            (D)
-   all/help2man/1.49.2-GCCcore-11.3.0
-   all/help2man/1.49.2-GCCcore-12.2.0
-   all/help2man/1.49.3-GCCcore-12.3.0
-   all/help2man/1.49.3-GCCcore-13.2.0             (D)
-   all/hwloc/2.7.1-GCCcore-11.3.0
-   all/hwloc/2.9.1-GCCcore-12.3.0
-   all/hwloc/2.9.2-GCCcore-13.2.0                 (D)
-   all/hypothesis/6.90.0-GCCcore-13.2.0
-   all/intltool/0.51.0-GCCcore-12.2.0
-   all/intltool/0.51.0-GCCcore-13.2.0             (D)
-   all/jbigkit/2.1-GCCcore-13.2.0
-   all/json-c/0.17-GCCcore-13.2.0
-   all/libarchive/3.6.1-GCCcore-12.2.0
-   all/libarchive/3.6.2-GCCcore-12.3.0
-   all/libarchive/3.7.2-GCCcore-13.2.0            (D)
-   all/libdeflate/1.19-GCCcore-13.2.0
-   all/libdrm/2.4.114-GCCcore-12.2.0
-   all/libevent/2.1.12-GCCcore-12.3.0
-   all/libevent/2.1.12-GCCcore-13.2.0             (D)
-   all/libfabric/1.18.0-GCCcore-12.3.0
-   all/libfabric/1.19.0-GCCcore-13.2.0            (D)
-   all/libffi/3.4.4-GCCcore-12.2.0
-   all/libffi/3.4.4-GCCcore-12.3.0
-   all/libffi/3.4.4-GCCcore-13.2.0                (D)
-   all/libiconv/1.17-GCCcore-12.2.0
-   all/libiconv/1.17-GCCcore-13.2.0               (D)
-   all/libjpeg-turbo/3.0.1-GCCcore-13.2.0
-   all/libpciaccess/0.16-GCCcore-11.3.0
-   all/libpciaccess/0.17-GCCcore-12.2.0
-   all/libpciaccess/0.17-GCCcore-12.3.0
-   all/libpciaccess/0.17-GCCcore-13.2.0           (D)
-   all/libpng/1.6.38-GCCcore-12.2.0
-   all/libpng/1.6.40-GCCcore-13.2.0               (D)
-   all/libreadline/8.1.2-GCCcore-11.3.0
-   all/libreadline/8.2-GCCcore-12.2.0
-   all/libreadline/8.2-GCCcore-12.3.0
-   all/libreadline/8.2-GCCcore-13.2.0             (D)
-   all/libtool/2.4.7-GCCcore-11.3.0
-   all/libtool/2.4.7-GCCcore-12.2.0
-   all/libtool/2.4.7-GCCcore-12.3.0
-   all/libtool/2.4.7-GCCcore-13.2.0
-   all/libtool/2.4.7                              (D)
-   all/libwebp/1.3.2-GCCcore-13.2.0
-   all/libxml2/2.9.13-GCCcore-11.3.0
-   all/libxml2/2.10.3-GCCcore-12.2.0
-   all/libxml2/2.11.4-GCCcore-12.3.0
-   all/libxml2/2.11.5-GCCcore-13.2.0              (D)
-   all/libyaml/0.2.5-GCCcore-13.2.0
-   all/lz4/1.9.4-GCCcore-13.2.0
-   all/make/4.4.1-GCCcore-12.3.0
-   all/make/4.4.1-GCCcore-13.2.0                  (D)
-   all/meson-python/0.15.0-GCCcore-13.2.0
-   all/ncurses/6.2
-   all/ncurses/6.3-GCCcore-11.3.0
-   all/ncurses/6.3-GCCcore-12.2.0
-   all/ncurses/6.3
-   all/ncurses/6.4-GCCcore-12.3.0
-   all/ncurses/6.4-GCCcore-13.2.0
-   all/ncurses/6.4                                (D)
-   all/networkx/3.2.1-gfbf-2023b
-   all/numactl/2.0.14-GCCcore-11.3.0
-   all/numactl/2.0.16-GCCcore-12.3.0
-   all/numactl/2.0.16-GCCcore-13.2.0              (D)
-   all/nvtop/3.0.1-GCCcore-12.2.0
-   all/patchelf/0.18.0-GCCcore-12.3.0
-   all/patchelf/0.18.0-GCCcore-13.2.0             (D)
-   all/pkgconf/1.8.0
-   all/pkgconf/1.9.3-GCCcore-12.2.0
-   all/pkgconf/1.9.5-GCCcore-12.3.0
-   all/pkgconf/2.0.3-GCCcore-13.2.0               (D)
-   all/poetry/1.5.1-GCCcore-12.3.0
-   all/poetry/1.6.1-GCCcore-13.2.0                (D)
-   all/protobuf/25.3-GCCcore-13.2.0
-   all/protobuf-python/4.25.3-GCCcore-13.2.0
-   all/pybind11/2.11.1-GCCcore-12.3.0
-   all/pybind11/2.11.1-GCCcore-13.2.0             (D)
-   all/pytest-flakefinder/1.1.0-GCCcore-13.2.0
-   all/pytest-rerunfailures/14.0-GCCcore-13.2.0
-   all/pytest-shard/0.1.2-GCCcore-13.2.0
-   all/scikit-build/0.17.6-GCCcore-12.3.0
-   all/scikit-build/0.17.6-GCCcore-13.2.0         (D)
-   all/setuptools-rust/1.6.0-GCCcore-12.3.0
-   all/setuptools-rust/1.8.0-GCCcore-13.2.0       (D)
-   all/sympy/1.12-gfbf-2023b
-   all/util-linux/2.38.1-GCCcore-12.2.0
-   all/util-linux/2.39-GCCcore-13.2.0             (D)
-   all/virtualenv/20.23.1-GCCcore-12.3.0
-   all/virtualenv/20.24.6-GCCcore-13.2.0          (D)
-   all/x264/20231019-GCCcore-13.2.0
-   all/x265/3.5-GCCcore-13.2.0
-   all/xorg-macros/1.19.3-GCCcore-11.3.0
-   all/xorg-macros/1.19.3-GCCcore-12.2.0
-   all/xorg-macros/1.20.0-GCCcore-12.3.0
-   all/xorg-macros/1.20.0-GCCcore-13.2.0          (D)
-   all/zlib/1.2.12-GCCcore-11.3.0
-   all/zlib/1.2.12-GCCcore-12.2.0
-   all/zlib/1.2.12
-   all/zlib/1.2.13-GCCcore-12.3.0
-   all/zlib/1.2.13-GCCcore-13.2.0
-   all/zlib/1.2.13                                (D)
-   all/zstd/1.5.5-GCCcore-13.2.0
-   compiler/GCC/12.3.0
-   compiler/GCC/13.2.0                            (D)
-   compiler/GCCcore/11.3.0
-   compiler/GCCcore/12.2.0
-   compiler/GCCcore/12.3.0
-   compiler/GCCcore/13.2.0                        (D)
-   data/LAME/3.100-GCCcore-13.2.0
-   devel/Autoconf/2.71-GCCcore-11.3.0
-   devel/Autoconf/2.71-GCCcore-12.2.0
-   devel/Autoconf/2.71-GCCcore-12.3.0
-   devel/Autoconf/2.71-GCCcore-13.2.0
-   devel/Autoconf/2.71                            (D)
-   devel/Automake/1.16.5-GCCcore-11.3.0
-   devel/Automake/1.16.5-GCCcore-12.2.0
-   devel/Automake/1.16.5-GCCcore-12.3.0
-   devel/Automake/1.16.5-GCCcore-13.2.0
-   devel/Automake/1.16.5                          (D)
-   devel/Autotools/20220317-GCCcore-11.3.0
-   devel/Autotools/20220317-GCCcore-12.2.0
-   devel/Autotools/20220317-GCCcore-12.3.0
-   devel/Autotools/20220317-GCCcore-13.2.0
-   devel/Autotools/20220317                       (D)
-   devel/CMake/3.24.3-GCCcore-12.2.0
-   devel/CMake/3.26.3-GCCcore-12.3.0
-   devel/CMake/3.27.6-GCCcore-13.2.0              (D)
-   devel/Doxygen/1.9.5-GCCcore-12.2.0
-   devel/Doxygen/1.9.8-GCCcore-13.2.0             (D)
-   devel/M4/1.4.18
-   devel/M4/1.4.19-GCCcore-11.3.0
-   devel/M4/1.4.19-GCCcore-12.2.0
-   devel/M4/1.4.19-GCCcore-12.3.0
-   devel/M4/1.4.19-GCCcore-13.2.0
-   devel/M4/1.4.19                                (D)
-   devel/SQLite/3.39.4-GCCcore-12.2.0
-   devel/SQLite/3.42.0-GCCcore-12.3.0
-   devel/SQLite/3.43.1-GCCcore-13.2.0             (D)
-   devel/gperf/3.1-GCCcore-12.2.0
-   devel/gperf/3.1-GCCcore-13.2.0                 (D)
-   devel/intltool/0.51.0-GCCcore-12.2.0
-   devel/intltool/0.51.0-GCCcore-13.2.0           (D)
-   devel/make/4.4.1-GCCcore-12.3.0
-   devel/make/4.4.1-GCCcore-13.2.0                (D)
-   devel/ncurses/6.2
-   devel/ncurses/6.3-GCCcore-11.3.0
-   devel/ncurses/6.3-GCCcore-12.2.0
-   devel/ncurses/6.3
-   devel/ncurses/6.4-GCCcore-12.3.0
-   devel/ncurses/6.4-GCCcore-13.2.0
-   devel/ncurses/6.4                              (D)
-   devel/pkgconf/1.8.0
-   devel/pkgconf/1.9.3-GCCcore-12.2.0
-   devel/pkgconf/1.9.5-GCCcore-12.3.0
-   devel/pkgconf/2.0.3-GCCcore-13.2.0             (D)
-   devel/protobuf/25.3-GCCcore-13.2.0
-   devel/protobuf-python/4.25.3-GCCcore-13.2.0
-   devel/xorg-macros/1.19.3-GCCcore-11.3.0
-   devel/xorg-macros/1.19.3-GCCcore-12.2.0
-   devel/xorg-macros/1.20.0-GCCcore-12.3.0
-   devel/xorg-macros/1.20.0-GCCcore-13.2.0        (D)
-   lang/Bison/3.8.2-GCCcore-11.3.0
-   lang/Bison/3.8.2-GCCcore-12.2.0
-   lang/Bison/3.8.2-GCCcore-12.3.0
-   lang/Bison/3.8.2-GCCcore-13.2.0
-   lang/Bison/3.8.2                               (D)
-   lang/FriBidi/1.0.13-GCCcore-13.2.0
-   lang/NASM/2.16.01-GCCcore-13.2.0
-   lang/Perl/5.34.1-GCCcore-11.3.0
-   lang/Perl/5.36.0-GCCcore-12.2.0
-   lang/Perl/5.36.1-GCCcore-12.3.0
-   lang/Perl/5.38.0-GCCcore-13.2.0                (D)
-   lang/Perl-bundle-CPAN/5.38.0-GCCcore-13.2.0
-   lang/Python/3.10.8-GCCcore-12.2.0-bare
-   lang/Python/3.10.8-GCCcore-12.2.0
-   lang/Python/3.11.3-GCCcore-12.3.0
-   lang/Python/3.11.5-GCCcore-13.2.0              (D)
-   lang/Python-bundle-PyPI/2023.06-GCCcore-12.3.0
-   lang/Python-bundle-PyPI/2023.10-GCCcore-13.2.0 (D)
-   lang/Rust/1.65.0-GCCcore-12.2.0
-   lang/Rust/1.70.0-GCCcore-12.3.0
-   lang/Rust/1.73.0-GCCcore-13.2.0                (D)
-   lang/SciPy-bundle/2023.11-gfbf-2023b
-   lang/Tcl/8.6.12-GCCcore-12.2.0
-   lang/Tcl/8.6.13-GCCcore-12.3.0
-   lang/Tcl/8.6.13-GCCcore-13.2.0                 (D)
-   lang/Yasm/1.3.0-GCCcore-13.2.0
-   lang/flex/2.6.4-GCCcore-11.3.0
-   lang/flex/2.6.4-GCCcore-12.2.0
-   lang/flex/2.6.4-GCCcore-12.3.0
-   lang/flex/2.6.4-GCCcore-13.2.0
-   lang/flex/2.6.4                                (D)
-   lib/Abseil/20240116.1-GCCcore-13.2.0
-   lib/Brotli/1.0.9-GCCcore-12.2.0
-   lib/Brotli/1.1.0-GCCcore-13.2.0                (D)
-   lib/Catch2/2.13.9-GCCcore-12.3.0
-   lib/Catch2/2.13.9-GCCcore-13.2.0               (D)
-   lib/FlexiBLAS/3.3.1-GCC-12.3.0
-   lib/FlexiBLAS/3.3.1-GCC-13.2.0                 (D)
-   lib/LibTIFF/4.6.0-GCCcore-13.2.0
-   lib/OpenJPEG/2.5.0-GCCcore-13.2.0
-   lib/PMIx/4.2.4-GCCcore-12.3.0
-   lib/PMIx/4.2.6-GCCcore-13.2.0                  (D)
-   lib/PyYAML/6.0.1-GCCcore-13.2.0
-   lib/SDL2/2.28.5-GCCcore-13.2.0
-   lib/UCC/1.2.0-GCCcore-12.3.0
-   lib/UCC/1.2.0-GCCcore-13.2.0                   (D)
-   lib/UCX/1.14.1-GCCcore-12.3.0
-   lib/UCX/1.15.0-GCCcore-13.2.0                  (D)
-   lib/ffnvcodec/12.1.14.0
-   lib/giflib/5.2.1-GCCcore-13.2.0
-   lib/json-c/0.17-GCCcore-13.2.0
-   lib/libdrm/2.4.114-GCCcore-12.2.0
-   lib/libevent/2.1.12-GCCcore-12.3.0
-   lib/libevent/2.1.12-GCCcore-13.2.0             (D)
-   lib/libfabric/1.18.0-GCCcore-12.3.0
-   lib/libfabric/1.19.0-GCCcore-13.2.0            (D)
-   lib/libffi/3.4.4-GCCcore-12.2.0
-   lib/libffi/3.4.4-GCCcore-12.3.0
-   lib/libffi/3.4.4-GCCcore-13.2.0                (D)
-   lib/libiconv/1.17-GCCcore-12.2.0
-   lib/libiconv/1.17-GCCcore-13.2.0               (D)
-   lib/libjpeg-turbo/3.0.1-GCCcore-13.2.0
-   lib/libpng/1.6.38-GCCcore-12.2.0
-   lib/libpng/1.6.40-GCCcore-13.2.0               (D)
-   lib/libreadline/8.1.2-GCCcore-11.3.0
-   lib/libreadline/8.2-GCCcore-12.2.0
-   lib/libreadline/8.2-GCCcore-12.3.0
-   lib/libreadline/8.2-GCCcore-13.2.0             (D)
-   lib/libtool/2.4.7-GCCcore-11.3.0
-   lib/libtool/2.4.7-GCCcore-12.2.0
-   lib/libtool/2.4.7-GCCcore-12.3.0
-   lib/libtool/2.4.7-GCCcore-13.2.0
-   lib/libtool/2.4.7                              (D)
-   lib/libwebp/1.3.2-GCCcore-13.2.0
-   lib/libxml2/2.9.13-GCCcore-11.3.0
-   lib/libxml2/2.10.3-GCCcore-12.2.0
-   lib/libxml2/2.11.4-GCCcore-12.3.0
-   lib/libxml2/2.11.5-GCCcore-13.2.0              (D)
-   lib/libyaml/0.2.5-GCCcore-13.2.0
-   lib/lz4/1.9.4-GCCcore-13.2.0
-   lib/pybind11/2.11.1-GCCcore-12.3.0
-   lib/pybind11/2.11.1-GCCcore-13.2.0             (D)
-   lib/scikit-build/0.17.6-GCCcore-12.3.0
-   lib/scikit-build/0.17.6-GCCcore-13.2.0         (D)
-   lib/zlib/1.2.12-GCCcore-11.3.0
-   lib/zlib/1.2.12-GCCcore-12.2.0
-   lib/zlib/1.2.12
-   lib/zlib/1.2.13-GCCcore-12.3.0
-   lib/zlib/1.2.13-GCCcore-13.2.0
-   lib/zlib/1.2.13                                (D)
-   lib/zstd/1.5.5-GCCcore-13.2.0
-   math/Eigen/3.4.0-GCCcore-12.3.0
-   math/Eigen/3.4.0-GCCcore-13.2.0                (D)
-   math/GMP/6.2.1-GCCcore-12.2.0
-   math/GMP/6.3.0-GCCcore-13.2.0                  (D)
-   math/MPC/1.3.1-GCCcore-13.2.0
-   math/MPFR/4.2.1-GCCcore-13.2.0
-   math/gmpy2/2.1.5-GCC-13.2.0
-   math/sympy/1.12-gfbf-2023b
-   mpi/OpenMPI/4.1.5-GCC-12.3.0
-   mpi/OpenMPI/4.1.6-GCC-13.2.0                   (D)
-   numlib/BLIS/0.9.0-GCC-12.3.0
-   numlib/BLIS/0.9.0-GCC-13.2.0                   (D)
-   numlib/FFTW/3.3.10-GCC-12.3.0
-   numlib/FFTW/3.3.10-GCC-13.2.0                  (D)
-   numlib/FFTW.MPI/3.3.10-gompi-2023a
-   numlib/FFTW.MPI/3.3.10-gompi-2023b             (D)
-   numlib/OpenBLAS/0.3.23-GCC-12.3.0
-   numlib/OpenBLAS/0.3.24-GCC-13.2.0              (D)
-   numlib/ScaLAPACK/2.2.0-gompi-2023a-fb
-   numlib/ScaLAPACK/2.2.0-gompi-2023b-fb          (D)
-   numlib/cuDNN/8.4.1.50-CUDA-11.7.0
-   numlib/cuDNN/8.9.7.29-CUDA-12.3.0              (D)
-   system/CUDA/11.3.1
-   system/CUDA/11.4.2
-   system/CUDA/11.5.0
-   system/CUDA/11.5.2
-   system/CUDA/11.6.0
-   system/CUDA/11.7.0
-   system/CUDA/11.8.0
-   system/CUDA/12.1.0
-   system/CUDA/12.2.0
-   system/CUDA/12.3.0
-   system/CUDA/12.4.0                             (D)
-   system/OpenSSL/1.1
-   system/hwloc/2.7.1-GCCcore-11.3.0
-   system/hwloc/2.9.1-GCCcore-12.3.0
-   system/hwloc/2.9.2-GCCcore-13.2.0              (D)
-   system/libdeflate/1.19-GCCcore-13.2.0
-   system/libpciaccess/0.16-GCCcore-11.3.0
-   system/libpciaccess/0.17-GCCcore-12.2.0
-   system/libpciaccess/0.17-GCCcore-12.3.0
-   system/libpciaccess/0.17-GCCcore-13.2.0        (D)
-   toolchain/foss/2023a
-   toolchain/foss/2023b                           (D)
-   toolchain/gfbf/2023b
-   toolchain/gompi/2023a
-   toolchain/gompi/2023b                          (D)
-   tools/DB/18.1.40-GCCcore-11.3.0
-   tools/DB/18.1.40-GCCcore-12.2.0                (D)
-   tools/Meson/0.64.0-GCCcore-12.2.0
-   tools/Meson/1.2.3-GCCcore-13.2.0               (D)
-   tools/Ninja/1.11.1-GCCcore-12.2.0
-   tools/Ninja/1.11.1-GCCcore-12.3.0
-   tools/Ninja/1.11.1-GCCcore-13.2.0              (D)
-   tools/UnZip/6.0-GCCcore-12.2.0
-   tools/UnZip/6.0-GCCcore-12.3.0
-   tools/UnZip/6.0-GCCcore-13.2.0                 (D)
-   tools/XZ/5.2.5-GCCcore-11.3.0
-   tools/XZ/5.2.7-GCCcore-12.2.0
-   tools/XZ/5.4.2-GCCcore-12.3.0
-   tools/XZ/5.4.4-GCCcore-13.2.0                  (D)
-   tools/Z3/4.13.0-GCCcore-13.2.0
-   tools/binutils/2.38-GCCcore-11.3.0
-   tools/binutils/2.38
-   tools/binutils/2.39-GCCcore-12.2.0
-   tools/binutils/2.39
-   tools/binutils/2.40-GCCcore-12.3.0
-   tools/binutils/2.40-GCCcore-13.2.0
-   tools/binutils/2.40                            (D)
-   tools/bzip2/1.0.8-GCCcore-12.2.0
-   tools/bzip2/1.0.8-GCCcore-12.3.0
-   tools/bzip2/1.0.8-GCCcore-13.2.0               (D)
-   tools/cURL/7.86.0-GCCcore-12.2.0
-   tools/cURL/8.0.1-GCCcore-12.3.0
-   tools/cURL/8.3.0-GCCcore-13.2.0                (D)
-   tools/cffi/1.15.1-GCCcore-12.3.0
-   tools/cffi/1.15.1-GCCcore-13.2.0               (D)
-   tools/cryptography/41.0.1-GCCcore-12.3.0
-   tools/cryptography/41.0.5-GCCcore-13.2.0       (D)
-   tools/expat/2.4.8-GCCcore-11.3.0
-   tools/expat/2.4.9-GCCcore-12.2.0
-   tools/expat/2.5.0-GCCcore-12.3.0
-   tools/expat/2.5.0-GCCcore-13.2.0               (D)
-   tools/expecttest/0.2.1-GCCcore-13.2.0
-   tools/flit/3.9.0-GCCcore-12.3.0
-   tools/flit/3.9.0-GCCcore-13.2.0                (D)
-   tools/gettext/0.21
-   tools/gettext/0.21.1-GCCcore-12.2.0
-   tools/gettext/0.21.1-GCCcore-12.3.0
-   tools/gettext/0.21.1
-   tools/gettext/0.22-GCCcore-13.2.0
-   tools/gettext/0.22                             (D)
-   tools/git/2.38.1-GCCcore-12.2.0-nodocs
-   tools/git/2.41.0-GCCcore-12.3.0-nodocs
-   tools/git/2.42.0-GCCcore-13.2.0                (D)
-   tools/groff/1.22.4-GCCcore-11.3.0
-   tools/groff/1.22.4-GCCcore-12.2.0
-   tools/groff/1.23.0-GCCcore-13.2.0              (D)
-   tools/gzip/1.13-GCCcore-13.2.0
-   tools/hatchling/1.18.0-GCCcore-12.3.0
-   tools/hatchling/1.18.0-GCCcore-13.2.0          (D)
-   tools/help2man/1.49.2-GCCcore-11.3.0
-   tools/help2man/1.49.2-GCCcore-12.2.0
-   tools/help2man/1.49.3-GCCcore-12.3.0
-   tools/help2man/1.49.3-GCCcore-13.2.0           (D)
-   tools/hypothesis/6.90.0-GCCcore-13.2.0
-   tools/libarchive/3.6.1-GCCcore-12.2.0
-   tools/libarchive/3.6.2-GCCcore-12.3.0
-   tools/libarchive/3.7.2-GCCcore-13.2.0          (D)
-   tools/meson-python/0.15.0-GCCcore-13.2.0
-   tools/networkx/3.2.1-gfbf-2023b
-   tools/numactl/2.0.14-GCCcore-11.3.0
-   tools/numactl/2.0.16-GCCcore-12.3.0
-   tools/numactl/2.0.16-GCCcore-13.2.0            (D)
-   tools/nvtop/3.0.1-GCCcore-12.2.0
-   tools/patchelf/0.18.0-GCCcore-12.3.0
-   tools/patchelf/0.18.0-GCCcore-13.2.0           (D)
-   tools/poetry/1.5.1-GCCcore-12.3.0
-   tools/poetry/1.6.1-GCCcore-13.2.0              (D)
-   tools/pytest-flakefinder/1.1.0-GCCcore-13.2.0
-   tools/pytest-rerunfailures/14.0-GCCcore-13.2.0
-   tools/pytest-shard/0.1.2-GCCcore-13.2.0
-   tools/setuptools-rust/1.6.0-GCCcore-12.3.0
-   tools/setuptools-rust/1.8.0-GCCcore-13.2.0     (D)
-   tools/util-linux/2.38.1-GCCcore-12.2.0
-   tools/util-linux/2.39-GCCcore-13.2.0           (D)
-   tools/virtualenv/20.23.1-GCCcore-12.3.0
-   tools/virtualenv/20.24.6-GCCcore-13.2.0        (D)
-   vis/FFmpeg/6.0-GCCcore-13.2.0
-   vis/LittleCMS/2.15-GCCcore-13.2.0
-   vis/Pillow/10.2.0-GCCcore-13.2.0
-   vis/X11/20221110-GCCcore-12.2.0
-   vis/X11/20231019-GCCcore-13.2.0                (D)
-   vis/fontconfig/2.14.1-GCCcore-12.2.0
-   vis/fontconfig/2.14.2-GCCcore-13.2.0           (D)
-   vis/freetype/2.12.1-GCCcore-12.2.0
-   vis/freetype/2.13.2-GCCcore-13.2.0             (D)
-   vis/jbigkit/2.1-GCCcore-13.2.0
-   vis/x264/20231019-GCCcore-13.2.0
-   vis/x265/3.5-GCCcore-13.2.0
-
-  Where:
-   D:  Default Module
-   L:  Module is loaded
-
-Use "module spider" to find all possible modules.
-Use "module keyword key1 key2 ..." to search for all possible modules matching
-any of the "keys".
-
-Lmod has detected the following error: The following module(s) are unknown:
-"cuda/11.7"
-
-Please check the spelling or version number. Also try "module spider ..."
-
-
-
-wandb: Using wandb-core as the SDK backend. Please refer to https://wandb.me/wandb-core for more information.
-wandb: Currently logged in as: williambittner (william_masterthesis). Use `wandb login --relogin` to force relogin
-wandb: WARNING Path /work/williamb/gnode_wandb/wandb/ wasn't writable, using system temp directory.
-wandb: Tracking run with wandb version 0.18.5
-wandb: Run data is saved locally in /tmp/wandb/run-20241212_084151-xhcrzgic
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run likely-puddle-17
-wandb: ⭐️ View project at https://wandb.ai/william_masterthesis/tmp
-wandb: 🚀 View run at https://wandb.ai/william_masterthesis/tmp/runs/xhcrzgic
-Training:   0%|          | 0/100 [00:00<?, ?epoch/s]Training [Loss: 0.5346970 | LR: 1.000e-03]:   0%|          | 0/100 [01:54<?, ?epoch/s]Training [Loss: 0.5346970 | LR: 1.000e-03]:   1%|          | 1/100 [01:54<3:09:31, 114.87s/epoch]Training [Loss: 0.1110998 | LR: 1.000e-03]:   1%|          | 1/100 [03:49<3:09:31, 114.87s/epoch]Training [Loss: 0.1110998 | LR: 1.000e-03]:   2%|▏         | 2/100 [03:49<3:07:14, 114.64s/epoch]Training [Loss: 0.0120785 | LR: 1.000e-03]:   2%|▏         | 2/100 [05:43<3:07:14, 114.64s/epoch]Training [Loss: 0.0120785 | LR: 1.000e-03]:   3%|▎         | 3/100 [05:43<3:05:04, 114.48s/epoch]Training [Loss: 0.0075117 | LR: 1.000e-03]:   3%|▎         | 3/100 [07:37<3:05:04, 114.48s/epoch]Training [Loss: 0.0075117 | LR: 1.000e-03]:   4%|▍         | 4/100 [07:37<3:02:58, 114.36s/epoch]Training [Loss: 0.0065911 | LR: 1.000e-03]:   4%|▍         | 4/100 [09:31<3:02:58, 114.36s/epoch]Training [Loss: 0.0065911 | LR: 1.000e-03]:   5%|▌         | 5/100 [09:31<3:00:54, 114.26s/epoch]Training [Loss: 0.0045906 | LR: 9.500e-04]:   5%|▌         | 5/100 [11:26<3:00:54, 114.26s/epoch]Training [Loss: 0.0045906 | LR: 9.500e-04]:   6%|▌         | 6/100 [11:26<2:59:19, 114.46s/epoch]Training [Loss: 0.0033541 | LR: 9.500e-04]:   6%|▌         | 6/100 [13:21<2:59:19, 114.46s/epoch]Training [Loss: 0.0033541 | LR: 9.500e-04]:   7%|▋         | 7/100 [13:21<2:57:20, 114.42s/epoch]Training [Loss: 0.0047406 | LR: 9.500e-04]:   7%|▋         | 7/100 [15:15<2:57:20, 114.42s/epoch]Training [Loss: 0.0047406 | LR: 9.500e-04]:   8%|▊         | 8/100 [15:15<2:55:15, 114.30s/epoch]Training [Loss: 0.0034457 | LR: 9.500e-04]:   8%|▊         | 8/100 [17:09<2:55:15, 114.30s/epoch]Training [Loss: 0.0034457 | LR: 9.500e-04]:   9%|▉         | 9/100 [17:09<2:53:20, 114.29s/epoch]Training [Loss: 0.0034450 | LR: 9.500e-04]:   9%|▉         | 9/100 [19:03<2:53:20, 114.29s/epoch]Training [Loss: 0.0034450 | LR: 9.500e-04]:  10%|█         | 10/100 [19:03<2:51:29, 114.33s/epoch]Training [Loss: 0.0023125 | LR: 9.025e-04]:  10%|█         | 10/100 [20:58<2:51:29, 114.33s/epoch]Training [Loss: 0.0023125 | LR: 9.025e-04]:  11%|█         | 11/100 [20:58<2:49:45, 114.45s/epoch]Training [Loss: 0.0034959 | LR: 9.025e-04]:  11%|█         | 11/100 [22:52<2:49:45, 114.45s/epoch]Training [Loss: 0.0034959 | LR: 9.025e-04]:  12%|█▏        | 12/100 [22:52<2:47:48, 114.42s/epoch]Training [Loss: 0.0025901 | LR: 9.025e-04]:  12%|█▏        | 12/100 [24:47<2:47:48, 114.42s/epoch]Training [Loss: 0.0025901 | LR: 9.025e-04]:  13%|█▎        | 13/100 [24:47<2:45:53, 114.41s/epoch]Training [Loss: 0.0027708 | LR: 9.025e-04]:  13%|█▎        | 13/100 [26:41<2:45:53, 114.41s/epoch]Training [Loss: 0.0027708 | LR: 9.025e-04]:  14%|█▍        | 14/100 [26:41<2:43:55, 114.36s/epoch]Training [Loss: 0.0023348 | LR: 9.025e-04]:  14%|█▍        | 14/100 [28:35<2:43:55, 114.36s/epoch]Training [Loss: 0.0023348 | LR: 9.025e-04]:  15%|█▌        | 15/100 [28:35<2:41:53, 114.27s/epoch]Training [Loss: 0.0017425 | LR: 8.574e-04]:  15%|█▌        | 15/100 [30:29<2:41:53, 114.27s/epoch]Training [Loss: 0.0017425 | LR: 8.574e-04]:  16%|█▌        | 16/100 [30:29<2:40:02, 114.31s/epoch]Training [Loss: 0.0030824 | LR: 8.574e-04]:  16%|█▌        | 16/100 [32:24<2:40:02, 114.31s/epoch]Training [Loss: 0.0030824 | LR: 8.574e-04]:  17%|█▋        | 17/100 [32:24<2:38:04, 114.27s/epoch]Training [Loss: 0.0024501 | LR: 8.574e-04]:  17%|█▋        | 17/100 [34:18<2:38:04, 114.27s/epoch]Training [Loss: 0.0024501 | LR: 8.574e-04]:  18%|█▊        | 18/100 [34:18<2:36:13, 114.31s/epoch]Training [Loss: 0.0018440 | LR: 8.574e-04]:  18%|█▊        | 18/100 [36:12<2:36:13, 114.31s/epoch]Training [Loss: 0.0018440 | LR: 8.574e-04]:  19%|█▉        | 19/100 [36:12<2:34:18, 114.31s/epoch]Training [Loss: 0.0024850 | LR: 8.574e-04]:  19%|█▉        | 19/100 [38:07<2:34:18, 114.31s/epoch]Training [Loss: 0.0024850 | LR: 8.574e-04]:  20%|██        | 20/100 [38:07<2:32:30, 114.39s/epoch]Training [Loss: 0.0013781 | LR: 8.145e-04]:  20%|██        | 20/100 [40:01<2:32:30, 114.39s/epoch]Training [Loss: 0.0013781 | LR: 8.145e-04]:  21%|██        | 21/100 [40:01<2:30:35, 114.37s/epoch]Training [Loss: 0.0016973 | LR: 8.145e-04]:  21%|██        | 21/100 [41:55<2:30:35, 114.37s/epoch]Training [Loss: 0.0016973 | LR: 8.145e-04]:  22%|██▏       | 22/100 [41:55<2:28:37, 114.32s/epoch]Training [Loss: 0.0018685 | LR: 8.145e-04]:  22%|██▏       | 22/100 [43:50<2:28:37, 114.32s/epoch]Training [Loss: 0.0018685 | LR: 8.145e-04]:  23%|██▎       | 23/100 [43:50<2:26:41, 114.30s/epoch]Training [Loss: 0.0023333 | LR: 8.145e-04]:  23%|██▎       | 23/100 [45:44<2:26:41, 114.30s/epoch]Training [Loss: 0.0023333 | LR: 8.145e-04]:  24%|██▍       | 24/100 [45:44<2:24:49, 114.34s/epoch]Training [Loss: 0.0022228 | LR: 8.145e-04]:  24%|██▍       | 24/100 [47:39<2:24:49, 114.34s/epoch]Training [Loss: 0.0022228 | LR: 8.145e-04]:  25%|██▌       | 25/100 [47:39<2:22:57, 114.37s/epoch]Training [Loss: 0.0012103 | LR: 7.738e-04]:  25%|██▌       | 25/100 [49:33<2:22:57, 114.37s/epoch]Training [Loss: 0.0012103 | LR: 7.738e-04]:  26%|██▌       | 26/100 [49:33<2:21:00, 114.33s/epoch]Training [Loss: 0.0009784 | LR: 7.738e-04]:  26%|██▌       | 26/100 [51:27<2:21:00, 114.33s/epoch]Training [Loss: 0.0009784 | LR: 7.738e-04]:  27%|██▋       | 27/100 [51:27<2:19:09, 114.38s/epoch]Training [Loss: 0.0018369 | LR: 7.738e-04]:  27%|██▋       | 27/100 [53:22<2:19:09, 114.38s/epoch]Training [Loss: 0.0018369 | LR: 7.738e-04]:  28%|██▊       | 28/100 [53:22<2:17:16, 114.39s/epoch]Training [Loss: 0.0016043 | LR: 7.738e-04]:  28%|██▊       | 28/100 [55:16<2:17:16, 114.39s/epoch]Training [Loss: 0.0016043 | LR: 7.738e-04]:  29%|██▉       | 29/100 [55:16<2:15:24, 114.42s/epoch]Training [Loss: 0.0017095 | LR: 7.738e-04]:  29%|██▉       | 29/100 [57:10<2:15:24, 114.42s/epoch]Training [Loss: 0.0017095 | LR: 7.738e-04]:  30%|███       | 30/100 [57:10<2:13:25, 114.36s/epoch]Training [Loss: 0.0006657 | LR: 7.351e-04]:  30%|███       | 30/100 [59:05<2:13:25, 114.36s/epoch]Training [Loss: 0.0006657 | LR: 7.351e-04]:  31%|███       | 31/100 [59:05<2:11:34, 114.41s/epoch]Training [Loss: 0.0018192 | LR: 7.351e-04]:  31%|███       | 31/100 [1:00:59<2:11:34, 114.41s/epoch]Training [Loss: 0.0018192 | LR: 7.351e-04]:  32%|███▏      | 32/100 [1:01:00<2:09:41, 114.44s/epoch]Training [Loss: 0.0011789 | LR: 7.351e-04]:  32%|███▏      | 32/100 [1:02:54<2:09:41, 114.44s/epoch]Training [Loss: 0.0011789 | LR: 7.351e-04]:  33%|███▎      | 33/100 [1:02:54<2:07:42, 114.37s/epoch]Training [Loss: 0.0015023 | LR: 7.351e-04]:  33%|███▎      | 33/100 [1:04:48<2:07:42, 114.37s/epoch]Training [Loss: 0.0015023 | LR: 7.351e-04]:  34%|███▍      | 34/100 [1:04:48<2:05:51, 114.41s/epoch]Training [Loss: 0.0012582 | LR: 7.351e-04]:  34%|███▍      | 34/100 [1:06:42<2:05:51, 114.41s/epoch]Training [Loss: 0.0012582 | LR: 7.351e-04]:  35%|███▌      | 35/100 [1:06:42<2:03:53, 114.36s/epoch]Training [Loss: 0.0006368 | LR: 6.983e-04]:  35%|███▌      | 35/100 [1:08:37<2:03:53, 114.36s/epoch]Training [Loss: 0.0006368 | LR: 6.983e-04]:  36%|███▌      | 36/100 [1:08:37<2:02:00, 114.38s/epoch]Training [Loss: 0.0013563 | LR: 6.983e-04]:  36%|███▌      | 36/100 [1:10:31<2:02:00, 114.38s/epoch]Training [Loss: 0.0013563 | LR: 6.983e-04]:  37%|███▋      | 37/100 [1:10:31<2:00:03, 114.34s/epoch]Training [Loss: 0.0011390 | LR: 6.983e-04]:  37%|███▋      | 37/100 [1:12:26<2:00:03, 114.34s/epoch]Training [Loss: 0.0011390 | LR: 6.983e-04]:  38%|███▊      | 38/100 [1:12:26<1:58:13, 114.40s/epoch]Training [Loss: 0.0011882 | LR: 6.983e-04]:  38%|███▊      | 38/100 [1:14:20<1:58:13, 114.40s/epoch]Training [Loss: 0.0011882 | LR: 6.983e-04]:  39%|███▉      | 39/100 [1:14:20<1:56:21, 114.44s/epoch]Training [Loss: 0.0012753 | LR: 6.983e-04]:  39%|███▉      | 39/100 [1:16:15<1:56:21, 114.44s/epoch]Training [Loss: 0.0012753 | LR: 6.983e-04]:  40%|████      | 40/100 [1:16:15<1:54:24, 114.41s/epoch]Training [Loss: 0.0005340 | LR: 6.634e-04]:  40%|████      | 40/100 [1:18:09<1:54:24, 114.41s/epoch]Training [Loss: 0.0005340 | LR: 6.634e-04]:  41%|████      | 41/100 [1:18:09<1:52:31, 114.43s/epoch]Training [Loss: 0.0015955 | LR: 6.634e-04]:  41%|████      | 41/100 [1:20:03<1:52:31, 114.43s/epoch]Training [Loss: 0.0015955 | LR: 6.634e-04]:  42%|████▏     | 42/100 [1:20:03<1:50:35, 114.40s/epoch]Training [Loss: 0.0005853 | LR: 6.634e-04]:  42%|████▏     | 42/100 [1:21:58<1:50:35, 114.40s/epoch]Training [Loss: 0.0005853 | LR: 6.634e-04]:  43%|████▎     | 43/100 [1:21:58<1:48:41, 114.41s/epoch]Training [Loss: 0.0011245 | LR: 6.634e-04]:  43%|████▎     | 43/100 [1:23:52<1:48:41, 114.41s/epoch]Training [Loss: 0.0011245 | LR: 6.634e-04]:  44%|████▍     | 44/100 [1:23:52<1:46:44, 114.36s/epoch]Training [Loss: 0.0011596 | LR: 6.634e-04]:  44%|████▍     | 44/100 [1:25:46<1:46:44, 114.36s/epoch]Training [Loss: 0.0011596 | LR: 6.634e-04]:  45%|████▌     | 45/100 [1:25:46<1:44:49, 114.35s/epoch]Training [Loss: 0.0003936 | LR: 6.302e-04]:  45%|████▌     | 45/100 [1:27:41<1:44:49, 114.35s/epoch]Training [Loss: 0.0003936 | LR: 6.302e-04]:  46%|████▌     | 46/100 [1:27:41<1:42:55, 114.37s/epoch]Training [Loss: 0.0008925 | LR: 6.302e-04]:  46%|████▌     | 46/100 [1:29:35<1:42:55, 114.37s/epoch]Training [Loss: 0.0008925 | LR: 6.302e-04]:  47%|████▋     | 47/100 [1:29:35<1:41:00, 114.35s/epoch]Training [Loss: 0.0008627 | LR: 6.302e-04]:  47%|████▋     | 47/100 [1:31:29<1:41:00, 114.35s/epoch]Training [Loss: 0.0008627 | LR: 6.302e-04]:  48%|████▊     | 48/100 [1:31:29<1:39:03, 114.30s/epoch]Training [Loss: 0.0009318 | LR: 6.302e-04]:  48%|████▊     | 48/100 [1:33:24<1:39:03, 114.30s/epoch]Training [Loss: 0.0009318 | LR: 6.302e-04]:  49%|████▉     | 49/100 [1:33:24<1:37:09, 114.31s/epoch]Training [Loss: 0.0010539 | LR: 6.302e-04]:  49%|████▉     | 49/100 [1:35:18<1:37:09, 114.31s/epoch]Training [Loss: 0.0010539 | LR: 6.302e-04]:  50%|█████     | 50/100 [1:35:18<1:35:17, 114.36s/epoch]Training [Loss: 0.0002854 | LR: 5.987e-04]:  50%|█████     | 50/100 [1:37:12<1:35:17, 114.36s/epoch]Training [Loss: 0.0002854 | LR: 5.987e-04]:  51%|█████     | 51/100 [1:37:12<1:33:21, 114.31s/epoch]Training [Loss: 0.0006395 | LR: 5.987e-04]:  51%|█████     | 51/100 [1:39:07<1:33:21, 114.31s/epoch]Training [Loss: 0.0006395 | LR: 5.987e-04]:  52%|█████▏    | 52/100 [1:39:07<1:31:30, 114.38s/epoch]Training [Loss: 0.0008614 | LR: 5.987e-04]:  52%|█████▏    | 52/100 [1:41:01<1:31:30, 114.38s/epoch]Training [Loss: 0.0008614 | LR: 5.987e-04]:  53%|█████▎    | 53/100 [1:41:01<1:29:40, 114.47s/epoch]Training [Loss: 0.0007366 | LR: 5.987e-04]:  53%|█████▎    | 53/100 [1:42:56<1:29:40, 114.47s/epoch]Training [Loss: 0.0007366 | LR: 5.987e-04]:  54%|█████▍    | 54/100 [1:42:56<1:27:46, 114.49s/epoch]Training [Loss: 0.0007472 | LR: 5.987e-04]:  54%|█████▍    | 54/100 [1:44:51<1:27:46, 114.49s/epoch]Training [Loss: 0.0007472 | LR: 5.987e-04]:  55%|█████▌    | 55/100 [1:44:51<1:25:52, 114.50s/epoch]Training [Loss: 0.0003145 | LR: 5.688e-04]:  55%|█████▌    | 55/100 [1:46:45<1:25:52, 114.50s/epoch]Training [Loss: 0.0003145 | LR: 5.688e-04]:  56%|█████▌    | 56/100 [1:46:45<1:24:00, 114.56s/epoch]Training [Loss: 0.0007572 | LR: 5.688e-04]:  56%|█████▌    | 56/100 [1:48:40<1:24:00, 114.56s/epoch]Training [Loss: 0.0007572 | LR: 5.688e-04]:  57%|█████▋    | 57/100 [1:48:40<1:22:04, 114.51s/epoch]Training [Loss: 0.0006279 | LR: 5.688e-04]:  57%|█████▋    | 57/100 [1:50:34<1:22:04, 114.51s/epoch]Training [Loss: 0.0006279 | LR: 5.688e-04]:  58%|█████▊    | 58/100 [1:50:34<1:20:11, 114.56s/epoch]Training [Loss: 0.0008075 | LR: 5.688e-04]:  58%|█████▊    | 58/100 [1:52:29<1:20:11, 114.56s/epoch]Training [Loss: 0.0008075 | LR: 5.688e-04]:  59%|█████▉    | 59/100 [1:52:29<1:18:14, 114.50s/epoch]Training [Loss: 0.0006088 | LR: 5.688e-04]:  59%|█████▉    | 59/100 [1:54:23<1:18:14, 114.50s/epoch]Training [Loss: 0.0006088 | LR: 5.688e-04]:  60%|██████    | 60/100 [1:54:23<1:16:23, 114.59s/epoch]Training [Loss: 0.0002996 | LR: 5.404e-04]:  60%|██████    | 60/100 [1:56:18<1:16:23, 114.59s/epoch]Training [Loss: 0.0002996 | LR: 5.404e-04]:  61%|██████    | 61/100 [1:56:18<1:14:32, 114.68s/epoch]Training [Loss: 0.0005177 | LR: 5.404e-04]:  61%|██████    | 61/100 [1:58:13<1:14:32, 114.68s/epoch]Training [Loss: 0.0005177 | LR: 5.404e-04]:  62%|██████▏   | 62/100 [1:58:13<1:12:36, 114.64s/epoch]Training [Loss: 0.0005816 | LR: 5.404e-04]:  62%|██████▏   | 62/100 [2:00:07<1:12:36, 114.64s/epoch]Training [Loss: 0.0005816 | LR: 5.404e-04]:  63%|██████▎   | 63/100 [2:00:07<1:10:40, 114.61s/epoch]Training [Loss: 0.0006446 | LR: 5.404e-04]:  63%|██████▎   | 63/100 [2:02:02<1:10:40, 114.61s/epoch]Training [Loss: 0.0006446 | LR: 5.404e-04]:  64%|██████▍   | 64/100 [2:02:02<1:08:44, 114.57s/epoch]Training [Loss: 0.0004740 | LR: 5.404e-04]:  64%|██████▍   | 64/100 [2:03:57<1:08:44, 114.57s/epoch]Training [Loss: 0.0004740 | LR: 5.404e-04]:  65%|██████▌   | 65/100 [2:03:57<1:06:51, 114.62s/epoch]Training [Loss: 0.0003233 | LR: 5.133e-04]:  65%|██████▌   | 65/100 [2:05:51<1:06:51, 114.62s/epoch]Training [Loss: 0.0003233 | LR: 5.133e-04]:  66%|██████▌   | 66/100 [2:05:51<1:04:54, 114.56s/epoch]Training [Loss: 0.0004588 | LR: 5.133e-04]:  66%|██████▌   | 66/100 [2:07:46<1:04:54, 114.56s/epoch]Training [Loss: 0.0004588 | LR: 5.133e-04]:  67%|██████▋   | 67/100 [2:07:46<1:03:01, 114.58s/epoch]Training [Loss: 0.0006733 | LR: 5.133e-04]:  67%|██████▋   | 67/100 [2:09:40<1:03:01, 114.58s/epoch]Training [Loss: 0.0006733 | LR: 5.133e-04]:  68%|██████▊   | 68/100 [2:09:40<1:01:05, 114.53s/epoch]Training [Loss: 0.0005073 | LR: 5.133e-04]:  68%|██████▊   | 68/100 [2:11:35<1:01:05, 114.53s/epoch]Training [Loss: 0.0005073 | LR: 5.133e-04]:  69%|██████▉   | 69/100 [2:11:35<59:11, 114.56s/epoch]  Training [Loss: 0.0004132 | LR: 5.133e-04]:  69%|██████▉   | 69/100 [2:13:29<59:11, 114.56s/epoch]Training [Loss: 0.0004132 | LR: 5.133e-04]:  70%|███████   | 70/100 [2:13:29<57:16, 114.55s/epoch]Training [Loss: 0.0003441 | LR: 4.877e-04]:  70%|███████   | 70/100 [2:15:24<57:16, 114.55s/epoch]Training [Loss: 0.0003441 | LR: 4.877e-04]:  71%|███████   | 71/100 [2:15:24<55:23, 114.62s/epoch]Training [Loss: 0.0004637 | LR: 4.877e-04]:  71%|███████   | 71/100 [2:17:19<55:23, 114.62s/epoch]Training [Loss: 0.0004637 | LR: 4.877e-04]:  72%|███████▏  | 72/100 [2:17:19<53:29, 114.62s/epoch]Training [Loss: 0.0003131 | LR: 4.877e-04]:  72%|███████▏  | 72/100 [2:19:13<53:29, 114.62s/epoch]Training [Loss: 0.0003131 | LR: 4.877e-04]:  73%|███████▎  | 73/100 [2:19:13<51:33, 114.58s/epoch]Training [Loss: 0.0005021 | LR: 4.877e-04]:  73%|███████▎  | 73/100 [2:21:08<51:33, 114.58s/epoch]Training [Loss: 0.0005021 | LR: 4.877e-04]:  74%|███████▍  | 74/100 [2:21:08<49:37, 114.53s/epoch]Training [Loss: 0.0003930 | LR: 4.877e-04]:  74%|███████▍  | 74/100 [2:23:03<49:37, 114.53s/epoch]Training [Loss: 0.0003930 | LR: 4.877e-04]:  75%|███████▌  | 75/100 [2:23:03<47:46, 114.66s/epoch]Training [Loss: 0.0002295 | LR: 4.633e-04]:  75%|███████▌  | 75/100 [2:24:58<47:46, 114.66s/epoch]Training [Loss: 0.0002295 | LR: 4.633e-04]:  76%|███████▌  | 76/100 [2:24:58<45:54, 114.76s/epoch]Training [Loss: 0.0004475 | LR: 4.633e-04]:  76%|███████▌  | 76/100 [2:26:52<45:54, 114.76s/epoch]Training [Loss: 0.0004475 | LR: 4.633e-04]:  77%|███████▋  | 77/100 [2:26:52<43:57, 114.67s/epoch]Training [Loss: 0.0003622 | LR: 4.633e-04]:  77%|███████▋  | 77/100 [2:28:47<43:57, 114.67s/epoch]Training [Loss: 0.0003622 | LR: 4.633e-04]:  78%|███████▊  | 78/100 [2:28:47<42:02, 114.64s/epoch]Training [Loss: 0.0004744 | LR: 4.633e-04]:  78%|███████▊  | 78/100 [2:30:41<42:02, 114.64s/epoch]Training [Loss: 0.0004744 | LR: 4.633e-04]:  79%|███████▉  | 79/100 [2:30:41<40:07, 114.64s/epoch]Training [Loss: 0.0003257 | LR: 4.633e-04]:  79%|███████▉  | 79/100 [2:32:36<40:07, 114.64s/epoch]Training [Loss: 0.0003257 | LR: 4.633e-04]:  80%|████████  | 80/100 [2:32:36<38:12, 114.63s/epoch]Training [Loss: 0.0002798 | LR: 4.401e-04]:  80%|████████  | 80/100 [2:34:30<38:12, 114.63s/epoch]Training [Loss: 0.0002798 | LR: 4.401e-04]:  81%|████████  | 81/100 [2:34:30<36:17, 114.58s/epoch]Training [Loss: 0.0002326 | LR: 4.401e-04]:  81%|████████  | 81/100 [2:36:25<36:17, 114.58s/epoch]Training [Loss: 0.0002326 | LR: 4.401e-04]:  82%|████████▏ | 82/100 [2:36:25<34:22, 114.56s/epoch]Training [Loss: 0.0004368 | LR: 4.401e-04]:  82%|████████▏ | 82/100 [2:38:20<34:22, 114.56s/epoch]Training [Loss: 0.0004368 | LR: 4.401e-04]:  83%|████████▎ | 83/100 [2:38:20<32:28, 114.61s/epoch]Training [Loss: 0.0003567 | LR: 4.401e-04]:  83%|████████▎ | 83/100 [2:40:14<32:28, 114.61s/epoch]Training [Loss: 0.0003567 | LR: 4.401e-04]:  84%|████████▍ | 84/100 [2:40:14<30:34, 114.68s/epoch]Training [Loss: 0.0002287 | LR: 4.401e-04]:  84%|████████▍ | 84/100 [2:42:09<30:34, 114.68s/epoch]Training [Loss: 0.0002287 | LR: 4.401e-04]:  85%|████████▌ | 85/100 [2:42:09<28:40, 114.69s/epoch]Training [Loss: 0.0001815 | LR: 4.181e-04]:  85%|████████▌ | 85/100 [2:44:04<28:40, 114.69s/epoch]Training [Loss: 0.0001815 | LR: 4.181e-04]:  86%|████████▌ | 86/100 [2:44:04<26:45, 114.65s/epoch]Training [Loss: 0.0003157 | LR: 4.181e-04]:  86%|████████▌ | 86/100 [2:45:58<26:45, 114.65s/epoch]Training [Loss: 0.0003157 | LR: 4.181e-04]:  87%|████████▋ | 87/100 [2:45:58<24:49, 114.59s/epoch]Training [Loss: 0.0003204 | LR: 4.181e-04]:  87%|████████▋ | 87/100 [2:47:52<24:49, 114.59s/epoch]Training [Loss: 0.0003204 | LR: 4.181e-04]:  88%|████████▊ | 88/100 [2:47:52<22:54, 114.53s/epoch]Training [Loss: 0.0002571 | LR: 4.181e-04]:  88%|████████▊ | 88/100 [2:49:47<22:54, 114.53s/epoch]Training [Loss: 0.0002571 | LR: 4.181e-04]:  89%|████████▉ | 89/100 [2:49:47<21:00, 114.56s/epoch]Training [Loss: 0.0005179 | LR: 4.181e-04]:  89%|████████▉ | 89/100 [2:51:42<21:00, 114.56s/epoch]Training [Loss: 0.0005179 | LR: 4.181e-04]:  90%|█████████ | 90/100 [2:51:42<19:06, 114.64s/epoch]Training [Loss: 0.0000752 | LR: 3.972e-04]:  90%|█████████ | 90/100 [2:53:37<19:06, 114.64s/epoch]Training [Loss: 0.0000752 | LR: 3.972e-04]:  91%|█████████ | 91/100 [2:53:37<17:11, 114.62s/epoch]Training [Loss: 0.0002208 | LR: 3.972e-04]:  91%|█████████ | 91/100 [2:55:31<17:11, 114.62s/epoch]Training [Loss: 0.0002208 | LR: 3.972e-04]:  92%|█████████▏| 92/100 [2:55:31<15:16, 114.62s/epoch]Training [Loss: 0.0003942 | LR: 3.972e-04]:  92%|█████████▏| 92/100 [2:57:26<15:16, 114.62s/epoch]Training [Loss: 0.0003942 | LR: 3.972e-04]:  93%|█████████▎| 93/100 [2:57:26<13:22, 114.66s/epoch]Training [Loss: 0.0001328 | LR: 3.972e-04]:  93%|█████████▎| 93/100 [2:59:20<13:22, 114.66s/epoch]Training [Loss: 0.0001328 | LR: 3.972e-04]:  94%|█████████▍| 94/100 [2:59:20<11:27, 114.63s/epoch]Training [Loss: 0.0002917 | LR: 3.972e-04]:  94%|█████████▍| 94/100 [3:01:15<11:27, 114.63s/epoch]Training [Loss: 0.0002917 | LR: 3.972e-04]:  95%|█████████▌| 95/100 [3:01:15<09:32, 114.57s/epoch]Training [Loss: 0.0002076 | LR: 3.774e-04]:  95%|█████████▌| 95/100 [3:03:10<09:32, 114.57s/epoch]Training [Loss: 0.0002076 | LR: 3.774e-04]:  96%|█████████▌| 96/100 [3:03:10<07:38, 114.59s/epoch]Training [Loss: 0.0001496 | LR: 3.774e-04]:  96%|█████████▌| 96/100 [3:05:04<07:38, 114.59s/epoch]Training [Loss: 0.0001496 | LR: 3.774e-04]:  97%|█████████▋| 97/100 [3:05:04<05:43, 114.58s/epoch]Training [Loss: 0.0002805 | LR: 3.774e-04]:  97%|█████████▋| 97/100 [3:06:59<05:43, 114.58s/epoch]Training [Loss: 0.0002805 | LR: 3.774e-04]:  98%|█████████▊| 98/100 [3:06:59<03:49, 114.62s/epoch]Training [Loss: 0.0002509 | LR: 3.774e-04]:  98%|█████████▊| 98/100 [3:08:53<03:49, 114.62s/epoch]Training [Loss: 0.0002509 | LR: 3.774e-04]:  99%|█████████▉| 99/100 [3:08:54<01:54, 114.65s/epoch]Training [Loss: 0.0002065 | LR: 3.774e-04]:  99%|█████████▉| 99/100 [3:10:48<01:54, 114.65s/epoch]Training [Loss: 0.0002065 | LR: 3.774e-04]: 100%|██████████| 100/100 [3:10:48<00:00, 114.70s/epoch]Training [Loss: 0.0002065 | LR: 3.774e-04]: 100%|██████████| 100/100 [3:10:48<00:00, 114.49s/epoch]
-wandb: - 4.986 MB of 25.980 MB uploadedwandb: \ 4.986 MB of 25.980 MB uploadedwandb:                                                                                
-wandb: 
-wandb: Run history:
-wandb:         epoch ▁▁▁▁▁▂▂▂▃▃▃▃▃▃▄▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▇▇▇▇▇▇▇▇██
-wandb: learning_rate ██▇▇▇▆▆▆▆▅▅▅▅▅▅▄▄▄▃▃▃▃▃▃▃▃▃▂▂▂▂▂▁▁▁▁▁▁▁▁
-wandb:    train_loss █▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-wandb: 
-wandb: Run summary:
-wandb:         epoch 99
-wandb: learning_rate 0.00038
-wandb:    train_loss 0.00021
-wandb: 
-wandb: 🚀 View run likely-puddle-17 at: https://wandb.ai/william_masterthesis/tmp/runs/xhcrzgic
-wandb: ⭐️ View project at: https://wandb.ai/william_masterthesis/tmp
-wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 1 other file(s)
-wandb: Find logs at: /tmp/wandb/run-20241212_084151-xhcrzgic/logs
