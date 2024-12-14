@@ -4,10 +4,10 @@ import os
 @dataclass
 class Config:
     # Training parameters
-    input_sequence_length: int = 10
-    output_sequence_length: int = 2
+    input_sequence_length: int = 5
+    output_sequence_length: int = 1
     epochs: int = 5000
-    batch_size: int = 512
+    batch_size: int = 256
     hidden_dim: int = 128
     learning_rate: float = 1e-3
     scheduler_step_size: int = 75
@@ -39,7 +39,7 @@ class Config:
 
     # Visualization
     viz_iter: int = 100
-    rollout_length: int = 300
+    rollout_length: int = 800
     viewport_size: int = 12
     
     # Wandb
@@ -49,3 +49,7 @@ class Config:
     @property
     def model_checkpoint_path(self):
         return os.path.join(self.model_checkpoint_dir, self.dataset_name)
+
+    # Add these to your existing Config class
+    noise_enabled: bool = True
+    noise_scale_factor: float = 0.1  # 10% of data std
