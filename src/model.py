@@ -6,6 +6,7 @@ from torch_scatter import scatter
 
 # Local Imports
 from pointcloud import DynamicPointcloud
+from dataloader import get_positional_encoding
 
 
 class PointTransformer(nn.Module):
@@ -82,6 +83,8 @@ class PointTransformer(nn.Module):
         if feat_dim % self.sequence_processor.layers[0].self_attn.num_heads != 0:
             raise ValueError(f"Feature dimension ({feat_dim}) must be divisible by num_heads ({self.sequence_processor.layers[0].self_attn.num_heads})")
         
+        x = x.contiguous()
+
         # Transformer processing
         x = self.sequence_processor(x)  # Shape remains (B*N, S, hidden_dim)
         
@@ -96,61 +99,72 @@ class PointTransformer(nn.Module):
         return x.squeeze(0)  # Remove batch dim if not needed
 
 
-    def rollout(self, initial_X, use_position=True, use_object_id=True, use_vertex_id=True, rollout_length=100):
+    def rollout(self, initial_X, use_position=True, use_object_id=True, use_vertex_id=True, rollout_length=100, config=None):
         """
         Perform autoregressive rollout starting from an initial sequence.
-        Now handles multi-step predictions at each forward pass.
-        
-        Args:
-            initial_X: Initial sequence tensor of shape (sequence_length, N, feature_dim)
-            use_position: Whether positions are included in features
-            use_object_id: Whether object IDs are included in features
-            use_vertex_id: Whether vertex IDs are included in features
-            rollout_length: Number of steps to predict into the future
-        
-        Returns:
-            DynamicPointcloud object containing the predicted sequence
-            First sequence_length frames are from the gt input sequence.
         """
         input_sequence_length = initial_X.shape[0]
         feature_dim = initial_X.shape[-1]
         
-        # Store the non-position features from the first frame
-        additional_features = initial_X[0, :, 3:] if feature_dim > 3 else None
-        
-        sequence_buffer = [initial_X[i].to(self.device) for i in range(input_sequence_length)]
+        # Initialize sequence buffer with initial frames
+        sequence_buffer = [initial_X[i].clone().to(self.device) for i in range(input_sequence_length)]
         
         predicted_sequence = []
-        # Store initial sequence frames first
-        for i in range(input_sequence_length):
-            positions = initial_X[i, :, :3].cpu().numpy()
-            predicted_sequence.append(positions)
+        
+        # Get ground truth positions from initial frames
+        if config.num_freq_bands > 0:
+            # If using frequency encoding, positions are in the first 3 dimensions
+            for i in range(input_sequence_length):
+                positions = initial_X[i, :, :3].cpu().numpy()
+                predicted_sequence.append(positions)
+        else:
+            # If not using frequency encoding, positions are in the first 3 dimensions
+            for i in range(input_sequence_length):
+                positions = initial_X[i, :, :3].cpu().numpy()
+                predicted_sequence.append(positions)
+        
         with torch.no_grad():
             steps_done = 0
             while steps_done < rollout_length:
+                # Stack current sequence buffer
                 X_in = torch.stack(sequence_buffer, dim=0)
-                # pred_positions shape: (output_sequence_length, N, 3)
-                pred_positions = self(X_in)
                 
-                # Add all predicted positions to the sequence
+                # Get predictions
+                pred_positions = self(X_in)  # shape: (output_sequence_length, N, 3)
+                
+                # Add predicted positions to sequence
                 for i in range(pred_positions.shape[0]):
                     if steps_done + i < rollout_length:
                         predicted_sequence.append(pred_positions[i].cpu().numpy())
                 
-                # Update sequence buffer with the most recent predictions
+                # Update sequence buffer with predictions
                 for i in range(pred_positions.shape[0]):
-                    sequence_buffer.pop(0)
-                    new_frame = pred_positions[i]
-                    # Concatenate with additional features if they exist
-                    if additional_features is not None:
-                        new_frame = torch.cat([new_frame, additional_features.to(self.device)], dim=1)
+                    sequence_buffer.pop(0)  # Remove oldest frame
+                    
+                    # Create new frame with same feature structure as input
+                    new_frame = initial_X[0].clone()  # Use structure from first frame torch.Size([162, 78])
+                    
+                    if config.num_freq_bands > 0:
+                        # Apply frequency encoding to new positions
+                        encoded_positions = get_positional_encoding(
+                            pred_positions[i].cpu().numpy(),
+                            num_encoding_functions=config.num_freq_bands
+                        )
+                        # Calculate the size of the encoded part (excluding the raw positions)
+                        encoded_size = encoded_positions.shape[1] 
+                        new_frame[:, :encoded_size] = torch.from_numpy(encoded_positions[:, :]).to(self.device)  # Update encoded part
+                        # new_frame[:, -3:] = pred_positions[i]  # Update raw positions
+                    else:
+                        # Just update the position part
+                        new_frame[:, :3] = pred_positions[i]
+                    
                     sequence_buffer.append(new_frame)
                 
                 steps_done += pred_positions.shape[0]
         
         # predicted_sequence is a list of rollout_length (N, 3) arrays
         dyn_pc = DynamicPointcloud.from_sequence(predicted_sequence)    
-
+        
         return dyn_pc
 
 

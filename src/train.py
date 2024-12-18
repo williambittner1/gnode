@@ -4,12 +4,18 @@ import wandb
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import os
+os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 import numpy as np
+from torch.cuda import memory_summary
+import torch.cuda as cuda
+import threading
+import time
+import open3d as o3d
 
 # Local Imports
 from config import Config
 from trainer import Trainer
-from visualization import create_plotly_figure, log_visualization, log_dataset_visualizations
+from visualization import log_dataset_visualizations,log_extrapolation_metrics, log_prediction_visualization
 from dataloader import PointcloudH5Dataset
 from model import PointTransformer
 from pointcloud import DynamicPointcloud
@@ -27,7 +33,12 @@ def train(config: Config):
         root_dir=config.dataset_root,
         split='train',
         input_sequence_length=config.input_sequence_length,
-        output_sequence_length=config.output_sequence_length
+        output_sequence_length=config.output_sequence_length,
+        use_position=config.use_position,
+        use_object_id=config.use_object_id,
+        use_vertex_id=config.use_vertex_id,
+        use_initial_position=config.use_initial_position,
+        num_freq_bands=config.num_freq_bands
     )
     
     train_dataloader = DataLoader(
@@ -40,8 +51,15 @@ def train(config: Config):
         root_dir=config.dataset_root,
         split='test',
         input_sequence_length=config.input_sequence_length,
-        output_sequence_length=config.output_sequence_length
+        output_sequence_length=config.output_sequence_length,
+        use_position=config.use_position,
+        use_object_id=config.use_object_id,
+        use_vertex_id=config.use_vertex_id,
+        use_initial_position=config.use_initial_position,
+        num_freq_bands=config.num_freq_bands
     )
+
+    torch.cuda.empty_cache()
     
 
     # 2. Model Setup
@@ -54,7 +72,7 @@ def train(config: Config):
         output_sequence_length=config.output_sequence_length,
         device=device
     ).to(device)
-    
+
     optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
     scheduler = torch.optim.lr_scheduler.StepLR(
         optimizer, 
@@ -85,6 +103,7 @@ def train(config: Config):
             prefix="test"
         )
 
+
     # 5. Training
     torch.cuda.empty_cache()
     trainer = Trainer(model, criterion, optimizer, scheduler, device, config)
@@ -100,14 +119,38 @@ def train(config: Config):
             "train_loss": avg_loss,
             "learning_rate": current_lr
         }
-        wandb.log({**metrics, "epoch": epoch})
-        
-        scheduler.step()
 
-        # Log visualization
-        if (epoch + 1) % config.viz_iter == 0 or epoch == config.epochs - 1 or epoch == 0:
-            log_visualization(model, test_dataset, device, config, epoch)
+        # Get predictions if needed for either visualization or metrics
+        if ((epoch + 1) % config.viz_iter == 0 or 
+            (epoch + 1) % config.extrapolation_metrics_iter == 0 or 
+            epoch == 50 or epoch == config.epochs - 1 or epoch == 0):
             
+            initial_X = test_dataset[0][0]
+            test_sequence_path = os.path.join(test_dataset.split_dir, test_dataset.sequence_files[0])
+            gt_dyn_pc = DynamicPointcloud()
+            gt_dyn_pc.load_h5_sequence(test_sequence_path)
+            
+            with torch.no_grad():
+                pred_dyn_pc = model.rollout(
+                    initial_X.to(device),
+                    rollout_length=config.rollout_length,
+                    config=config
+                )
+            
+            # Get metrics if it's time
+            if ((epoch + 1) % config.extrapolation_metrics_iter == 0 or 
+                epoch == 50 or epoch == config.epochs - 1 or epoch == 0):
+                extrapolation_metrics = log_extrapolation_metrics(gt_dyn_pc, pred_dyn_pc, epoch)
+                metrics.update(extrapolation_metrics)
+
+            # Log visualization if it's time
+            # if ((epoch + 1) % config.viz_iter == 0 or 
+            #     epoch == 50 or epoch == config.epochs - 1 or epoch == 0):
+            #     log_prediction_visualization(gt_dyn_pc, pred_dyn_pc, epoch)
+
+        # Log all metrics at once
+        wandb.log({**metrics, "epoch": epoch}, step=epoch)
+
         # Save model checkpoint
         if (epoch + 1) % config.save_model_checkpoint_iter == 0 or epoch == config.epochs - 1:
             checkpoint_path = os.path.join(
