@@ -3,7 +3,7 @@ import wandb
 import numpy as np
 import torch
 import os
-from pointcloud import DynamicPointcloud
+from pointcloud import DynamicPointcloud, Pointcloud
 import open3d as o3d
 import threading
 import time
@@ -60,7 +60,7 @@ def create_plotly_figure(dyn_pcs_list, dyn_pcs_names_list, point_size=1, colors=
     # Update layout with both play and pause buttons
     fig.update_layout(
         scene=dict(
-            dragmode=False, 
+            # dragmode=False, 
             aspectmode='cube',
             xaxis=dict(range=[-12, 12]),
             yaxis=dict(range=[-12, 12]),
@@ -128,7 +128,7 @@ def compute_extrapolation_divergence(gt_dyn_pc, pred_dyn_pc, frame_nums):
     return errors
 
 
-def log_extrapolation_metrics(gt_dyn_pc, pred_dyn_pc, epoch):
+def log_extrapolation_metrics(gt_dyn_pc, pred_dyn_pc, epoch, prefix=""):
     """
     Compute and return extrapolation metrics (without logging).
     
@@ -136,6 +136,7 @@ def log_extrapolation_metrics(gt_dyn_pc, pred_dyn_pc, epoch):
         gt_dyn_pc: Ground truth DynamicPointcloud
         pred_dyn_pc: Predicted DynamicPointcloud
         epoch: Current training epoch
+        prefix: String prefix for metric names (e.g., "train_" or "test_")
     Returns:
         dict: Dictionary containing the metrics
     """
@@ -145,18 +146,17 @@ def log_extrapolation_metrics(gt_dyn_pc, pred_dyn_pc, epoch):
     
     # Return metrics dictionary without logging
     return {
-        "extrapolation/mse_over_time": wandb.plot.line_series(
+        f"{prefix}sequence_extrapolation/mse_over_time": wandb.plot.line_series(
             xs=frame_nums,
             ys=[divergence_errors],
             keys=["MSE"],
-            title=f"Extrapolation Divergence (Epoch {epoch})",
             xname="Frame"
         ),
-        "extrapolation/mean_mse": np.mean(divergence_errors)
+        f"{prefix}sequence_extrapolation/mean_mse": np.mean(divergence_errors)
     }
 
 
-def log_prediction_visualization(gt_dyn_pc, pred_dyn_pc, epoch):
+def log_prediction_visualization(gt_dyn_pc, pred_dyn_pc, epoch, prefix=""):
     """
     Create and log visualization of ground truth vs prediction to wandb.
     
@@ -164,6 +164,7 @@ def log_prediction_visualization(gt_dyn_pc, pred_dyn_pc, epoch):
         gt_dyn_pc: Ground truth DynamicPointcloud
         pred_dyn_pc: Predicted DynamicPointcloud
         epoch: Current training epoch
+        prefix: Optional string prefix for the wandb logging key (e.g. "train_" or "test_")
     """
     # Create visualization
     fig = create_plotly_figure(
@@ -174,11 +175,12 @@ def log_prediction_visualization(gt_dyn_pc, pred_dyn_pc, epoch):
     # Convert to HTML and log
     html_str = fig.to_html(full_html=False, include_plotlyjs='cdn')
     wandb.log({
-        "gt_vs_pred": wandb.Html(html_str, inject=False),
+        f"{prefix}gt_vs_pred": wandb.Html(html_str, inject=False),
         "epoch": epoch
     })
     
-    print(f"Logged prediction visualization for epoch {epoch}")
+    print(f"\nLogged prediction visualization with prefix='{prefix}' for epoch {epoch}")
+
 
 
 def log_dataset_visualizations(dataset, num_sequences=5, prefix=""):
@@ -200,6 +202,45 @@ def log_dataset_visualizations(dataset, num_sequences=5, prefix=""):
         wandb.log({
             f"{prefix}sequence_{i}": wandb.Html(html_str, inject=False)
         })
+
+
+def log_noise_visualization(clean_X, noisy_X, epoch):
+    """
+    Create and log visualization comparing clean and noisy point cloud sequences.
+    
+    Args:
+        clean_X: Original input tensor of shape (sequence_length, N, feature_dim)
+        noisy_X: Noisy input tensor of same shape
+        epoch: Current training epoch
+    """
+    # Create DynamicPointcloud objects for visualization
+    clean_pc = DynamicPointcloud()
+    noisy_pc = DynamicPointcloud()
+    
+    # Add all frames from the sequence
+    seq_length = clean_X.shape[0]
+    for t in range(seq_length):
+        clean_positions = clean_X[t, :, :3].cpu().numpy()
+        noisy_positions = noisy_X[t, :, :3].cpu().numpy()
+        
+        # Add frames to the pointclouds
+        clean_pc.frames[t] = Pointcloud(positions=clean_positions)
+        noisy_pc.frames[t] = Pointcloud(positions=noisy_positions)
+    
+    # Create visualization
+    fig = create_plotly_figure(
+        dyn_pcs_list=[clean_pc, noisy_pc],
+        dyn_pcs_names_list=["clean", "noisy"]
+    )
+    
+    # Convert to HTML and log
+    html_str = fig.to_html(full_html=False, include_plotlyjs='cdn')
+    wandb.log({
+        "noise_comparison": wandb.Html(html_str, inject=False),
+        "epoch": epoch
+    })
+    
+    print(f"Logged noise comparison visualization for epoch {epoch}")
 
 
 class DynamicPredictionViewer:

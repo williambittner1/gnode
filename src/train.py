@@ -15,9 +15,9 @@ import open3d as o3d
 # Local Imports
 from config import Config
 from trainer import Trainer
-from visualization import log_dataset_visualizations,log_extrapolation_metrics, log_prediction_visualization
+from visualization import log_dataset_visualizations,log_extrapolation_metrics, log_prediction_visualization, log_noise_visualization
 from dataloader import PointcloudH5Dataset
-from model import PointTransformer
+from model import PointTransformer, PointCloudTransformer
 from pointcloud import DynamicPointcloud
 
 
@@ -46,6 +46,7 @@ def train(config: Config):
         batch_size=config.batch_size, 
         shuffle=True
     )
+    print(f"Train dataloader length: {len(train_dataloader)}")
     
     test_dataset = PointcloudH5Dataset(
         root_dir=config.dataset_root,
@@ -63,15 +64,31 @@ def train(config: Config):
     
 
     # 2. Model Setup
+    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # model = PointTransformer(
+    #     input_dim=train_dataset.feature_dim,
+    #     output_dim=3,
+    #     hidden_dim=config.hidden_dim,
+    #     input_sequence_length=config.input_sequence_length,
+    #     output_sequence_length=config.output_sequence_length,
+    #     device=device
+    # ).to(device)
+
+
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = PointTransformer(
+    model = PointCloudTransformer(
         input_dim=train_dataset.feature_dim,
         output_dim=3,
         hidden_dim=config.hidden_dim,
         input_sequence_length=config.input_sequence_length,
         output_sequence_length=config.output_sequence_length,
+        num_heads=config.num_heads,  # Ensure this exists in your config
+        num_transformer_layers=config.num_transformer_layers,  # Ensure this exists in your config
+        dropout=config.dropout,  # Ensure this exists in your config
         device=device
     ).to(device)
+
 
     optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
     scheduler = torch.optim.lr_scheduler.StepLR(
@@ -125,31 +142,62 @@ def train(config: Config):
             (epoch + 1) % config.extrapolation_metrics_iter == 0 or 
             epoch == 50 or epoch == config.epochs - 1 or epoch == 0):
             
-            initial_X = test_dataset[0][0]
+            # Test sequence prediction
+            initial_X_test = test_dataset[0][0]
             test_sequence_path = os.path.join(test_dataset.split_dir, test_dataset.sequence_files[0])
-            gt_dyn_pc = DynamicPointcloud()
-            gt_dyn_pc.load_h5_sequence(test_sequence_path)
+            gt_dyn_pc_test = DynamicPointcloud()
+            gt_dyn_pc_test.load_h5_sequence(test_sequence_path)
+            
+            # Train sequence prediction
+            initial_X_train = train_dataset[0][0]
+            train_sequence_path = os.path.join(train_dataset.split_dir, train_dataset.sequence_files[0])
+            gt_dyn_pc_train = DynamicPointcloud()
+            gt_dyn_pc_train.load_h5_sequence(train_sequence_path)
             
             with torch.no_grad():
-                pred_dyn_pc = model.rollout(
-                    initial_X.to(device),
-                    rollout_length=config.rollout_length,
-                    config=config
+                # Get test sequence predictions
+                pred_dyn_pc_test = model.rollout(
+                    initial_X_test.to(device),
+                    num_future_steps=config.rollout_length
+                )
+                
+                # Get train sequence predictions
+                pred_dyn_pc_train = model.rollout(
+                    initial_X_train.to(device),
+                    num_future_steps=config.rollout_length
                 )
             
             # Get metrics if it's time
             if ((epoch + 1) % config.extrapolation_metrics_iter == 0 or 
                 epoch == 50 or epoch == config.epochs - 1 or epoch == 0):
-                extrapolation_metrics = log_extrapolation_metrics(gt_dyn_pc, pred_dyn_pc, epoch)
-                metrics.update(extrapolation_metrics)
+                # Get test and train metrics
+                test_metrics = log_extrapolation_metrics(
+                    gt_dyn_pc_test, 
+                    pred_dyn_pc_test, 
+                    epoch,
+                    prefix="test_"
+                )
+                train_metrics = log_extrapolation_metrics(
+                    gt_dyn_pc_train, 
+                    pred_dyn_pc_train, 
+                    epoch,
+                    prefix="train_"
+                )
+                
+                # Update metrics dictionary
+                metrics.update(test_metrics)
+                metrics.update(train_metrics)
+            
+            # Log visualizations if needed
+            if (epoch % config.viz_iter == 0 or 
+                epoch == 0 or 
+                epoch == 25 or 
+                epoch == config.epochs - 1):
+                log_prediction_visualization(gt_dyn_pc_test, pred_dyn_pc_test, epoch, prefix="test_")
+                log_prediction_visualization(gt_dyn_pc_train, pred_dyn_pc_train, epoch, prefix="train_")
 
-            # Log visualization if it's time
-            # if ((epoch + 1) % config.viz_iter == 0 or 
-            #     epoch == 50 or epoch == config.epochs - 1 or epoch == 0):
-            #     log_prediction_visualization(gt_dyn_pc, pred_dyn_pc, epoch)
-
-        # Log all metrics at once
-        wandb.log({**metrics, "epoch": epoch}, step=epoch)
+        # Single logging point for all metrics
+        wandb.log(metrics, step=epoch)
 
         # Save model checkpoint
         if (epoch + 1) % config.save_model_checkpoint_iter == 0 or epoch == config.epochs - 1:

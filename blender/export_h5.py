@@ -73,12 +73,18 @@ transformation_matrix:
 """
 
 
+import bpy
+import os
+import h5py
+import numpy as np
+
+# Clear all existing frame change handlers
+bpy.app.handlers.frame_change_post.clear()
+print("Cleared all existing frame change handlers.")
+
 
 def export_transformed_objects_to_hdf5(output_file, total_frames, object_names=None, tracked_attributes=None):
-    # Create the HDF5 file
     with h5py.File(output_file, 'w') as h5file:
-
-        # Determine objects to export
         if object_names:
             objects_to_export = [bpy.data.objects[name] for name in object_names if name in bpy.data.objects]
         else:
@@ -88,75 +94,67 @@ def export_transformed_objects_to_hdf5(output_file, total_frames, object_names=N
             print("No valid objects selected or provided for export.")
             return
 
-        # Create groups in HDF5 for each frame
         for frame in range(1, total_frames + 1):
             bpy.context.scene.frame_set(frame)
             frame_group = h5file.create_group(f"frame_{frame:04d}")
+            depsgraph = bpy.context.evaluated_depsgraph_get()
 
             for obj in objects_to_export:
-                depsgraph = bpy.context.evaluated_depsgraph_get()
                 eval_obj = obj.evaluated_get(depsgraph)
-
                 if not eval_obj.data:
                     continue  # Skip objects without mesh data
 
                 mesh = eval_obj.to_mesh()
 
-                # Create group for the object
                 obj_group = frame_group.create_group(obj.name)
-
-                # Write vertices
                 vertices = np.array([vert.co[:] for vert in mesh.vertices])
                 obj_group.create_dataset("vertices", data=vertices)
-
-                # Write faces
                 faces = np.array([poly.vertices[:] for poly in mesh.polygons])
                 obj_group.create_dataset("faces", data=faces, dtype='i4')
 
-                # Write custom attributes (from geometry nodes)
                 if tracked_attributes:
                     attributes_group = obj_group.create_group("attributes")
                     for attr_name in tracked_attributes:
-                        try:
-                            if attr_name in mesh.attributes:
-                                attr = mesh.attributes[attr_name]
-                                if attr.domain == 'POINT':
-                                    values = np.array([attr.data[i].value for i in range(len(attr.data))])
-                                    attributes_group.create_dataset(attr_name, data=values)
-                                    print(f"Exported attribute {attr_name} for object {obj.name}")
-                        except AttributeError:
-                            print(f"Attribute {attr_name} not found or inaccessible.")
+                        if attr_name in mesh.attributes:
+                            attr = mesh.attributes[attr_name]
+                            if attr.domain == 'POINT':
+                                values = np.array([attr.data[i].value for i in range(len(attr.data))])
+                                attributes_group.create_dataset(attr_name, data=values)
 
-                # Write transformation matrix
                 transformation_matrix = np.array(eval_obj.matrix_world)
                 obj_group.create_dataset("transformation_matrix", data=transformation_matrix)
 
-                # Release mesh to avoid memory issues
                 eval_obj.to_mesh_clear()
 
     print(f"Exported {total_frames} frames to HDF5 file: {output_file}")
 
-# Example of running multiple sequences
-base_output_folder = "/Users/williambittner/Documents/Blender/data_generator/medium_damped_orbit_h5"
-total_frames = 2000
+
+# Parameters
+base_output_folder = "/Users/williambittner/Documents/Blender/data_generator/test"
+total_frames = 50
 tracked_attributes = ["object_id", "vertex_id", "timestep"]
+number_of_sequences = 3
 
-# The name of your geometry nodes modifier
-gn_modifier_name = "GM_Sphere"  # Change this to match your actual modifier name
+# Geometry Nodes modifier settings
+gn_modifier_name = "GeometryNodes"
+seed_property_name = "Socket_2"  # Ensure this matches the actual seed input name
 
-# Number of sequences and their seed values
-number_of_sequences = 300
+# Ensure the base output directory exists
+os.makedirs(base_output_folder, exist_ok=True)
+
+# Main loop for updating seed and exporting sequences
 for seq in range(number_of_sequences):
-    # Ensure the base output directory exists
-    os.makedirs(base_output_folder, exist_ok=True)
-
-    # Adjust the geometry nodes seed before exporting
     for obj in bpy.context.selected_objects:
-        if obj.type == 'MESH':
-            for mod in obj.modifiers:
-                if mod.name == gn_modifier_name:
-                    mod["Input_1"] = seq  # Replace "Input_1" with the correct input identifier
+        if obj.type == 'MESH' and gn_modifier_name in obj.modifiers:
+            mod = obj.modifiers[gn_modifier_name]
+            # Update the Seed value
+            mod[seed_property_name] = seq
+            print(f"Set {seed_property_name} to {seq} for {obj.name}")
 
-    # Define the HDF5 file for this sequence
+            # Explicitly force a modifier update
+            obj.update_tag(refresh={'OBJECT', 'DATA'})  # Marks the object and modifier for refresh
+            bpy.context.view_layer.update()  # Update the view layer to propagate changes
+
+    # Export the current sequence
     hdf5_file = os.path.join(base_output_folder, f"sequence_{seq+1}.h5")
     export_transformed_objects_to_hdf5(hdf5_file, total_frames, tracked_attributes=tracked_attributes)

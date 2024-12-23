@@ -168,6 +168,133 @@ class PointTransformer(nn.Module):
         return dyn_pc
 
 
+
+class PointCloudTransformer(nn.Module):
+    def __init__(self, input_dim=3, output_dim=3, hidden_dim=128, 
+                 input_sequence_length=1, output_sequence_length=1,
+                 num_heads=4, num_transformer_layers=2, dropout=0.1, device="cpu"):
+        super(PointCloudTransformer, self).__init__()
+        
+        self.device = device
+
+        # Ensure hidden_dim is divisible by num_heads
+        assert hidden_dim % num_heads == 0, f"hidden_dim ({hidden_dim}) must be divisible by num_heads ({num_heads})"
+        
+        self.input_sequence_length = input_sequence_length
+        self.output_sequence_length = output_sequence_length
+        
+        # Frame encoder: Process each point's features individually
+        self.frame_encoder = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+        )
+        
+        # Transformer encoder layer
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=hidden_dim,
+            nhead=num_heads,
+            dim_feedforward=hidden_dim * 4,
+            dropout=dropout,
+            batch_first=True,  # Input shape: (B, S, F)
+        )
+
+        # Transformer encoder for processing the entire point cloud
+        self.sequence_processor = nn.TransformerEncoder(
+            encoder_layer,
+            num_layers=num_transformer_layers
+        )
+
+        # Final MLP to predict multiple future positions
+        self.output_mlp = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, output_dim * output_sequence_length)
+        )
+
+    def forward(self, x):
+        """
+        x: Tensor of shape (B, S, N, D)
+            - B: Batch size
+            - S: Input sequence length (timesteps)
+            - N: Number of points in the point cloud
+            - D: Input feature dimension per point (e.g., 3 for (x, y, z))
+        """
+        B, S, N, D = x.shape
+        
+        # Flatten spatial (N) and temporal (S) dimensions into a single sequence
+        x = x.reshape(B, S * N, D)  # Shape: (B, S * N, D)
+        
+        # Process individual point features with frame encoder
+        x = self.frame_encoder(x.reshape(-1, D))  # Shape: (B * S * N, hidden_dim)
+        x = x.reshape(B, S * N, -1)  # Shape: (B, S * N, hidden_dim)
+
+        # Process the entire point cloud sequence with the Transformer
+        x = self.sequence_processor(x)  # Shape remains (B, S * N, hidden_dim)
+
+        # Reshape back to point-level structure (optional)
+        x = x.reshape(B, S, N, -1)  # Restore temporal structure: (B, S, N, hidden_dim)
+        x = x[:, -1, :, :]  # Take the last timestep's output: (B, N, hidden_dim)
+
+        # Predict future positions with the output MLP
+        x = self.output_mlp(x)  # Shape: (B, N, output_dim * output_sequence_length)
+        x = x.reshape(B, N, self.output_sequence_length, -1)  # Reshape to separate outputs
+        x = x.transpose(1, 2)  # Final shape: (B, output_sequence_length, N, output_dim)
+        
+        return x
+    
+
+    def rollout(self, x, num_future_steps):
+        """
+        Rollout predictions for a specified number of future timesteps.
+        
+        Args:
+        - x: Tensor of shape (S, N, D) (initial input sequence)
+        - num_future_steps: Number of timesteps to predict into the future
+        
+        Returns:
+        - DynamicPointcloud object containing the predicted sequence
+        """
+        # Add batch dimension if not present
+        if len(x.shape) == 3:
+            x = x.unsqueeze(0)  # Shape: (1, S, N, D)
+        
+        B, S, N, D = x.shape
+        future_predictions = []
+
+        # Add initial sequence positions to predictions
+        for i in range(S):
+            positions = x[0, i, :, :3].cpu().numpy()  # Take first batch, only xyz coords
+            future_predictions.append(positions)
+
+        # Use the input sequence for initial prediction
+        current_input = x
+
+        for _ in range(num_future_steps):
+            # Forward pass to predict the next timestep
+            predicted_next = self.forward(current_input)  # Shape: (B, output_sequence_length, N, output_dim)
+            
+            # Take only the first prediction if multiple steps are predicted
+            next_positions = predicted_next[:, 0]  # Shape: (B, N, output_dim)
+            
+            # Create new frame with same feature structure as input
+            new_frame = x[:, -1].clone()  # Take structure from last frame
+            new_frame[:, :, :3] = next_positions  # Update positions
+            new_frame = new_frame.unsqueeze(1)  # Add time dimension: (B, 1, N, D)
+            
+            # Add prediction to sequence
+            positions = next_positions[0].cpu().numpy()  # Take first batch
+            future_predictions.append(positions)
+            
+            # Update input sequence by removing oldest frame and adding prediction
+            current_input = torch.cat([current_input[:, 1:], new_frame], dim=1)
+        
+        # Convert predictions to DynamicPointcloud
+        dyn_pc = DynamicPointcloud.from_sequence(future_predictions)
+        
+        return dyn_pc
+
 class PointLSTM(nn.Module):
     def __init__(self, input_dim=3, output_dim=3, hidden_dim=128, 
                  input_sequence_length=1, output_sequence_length=1):

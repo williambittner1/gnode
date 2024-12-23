@@ -5,11 +5,11 @@ import os
 class Config:
     # Training parameters
     input_sequence_length: int = 5
-    output_sequence_length: int = 30
+    output_sequence_length: int = 5
     epochs: int = 5000
-    batch_size: int = 256
+    batch_size: int = 2048
     hidden_dim: int = 128
-    learning_rate: float = 1e-3
+    learning_rate: float = 1e-4
     scheduler_step_size: int = 50
     scheduler_gamma: float = 0.95
     
@@ -30,8 +30,8 @@ class Config:
     model_checkpoint_dir: str = "../model_checkpoint"
     
     # Dataset
-    dataset_name: str = "mini_damped_orbit_h5"
-    slurm: bool = False
+    dataset_name: str = "medium"
+    slurm: bool = True
     
     @property
     def dataset_root(self): 
@@ -46,12 +46,12 @@ class Config:
 
     # Visualization and Metrics
     viz_iter: int = 50  # How often to log visualizations
-    extrapolation_metrics_iter: int = 5  # How often to log metrics
-    rollout_length: int = 600
+    extrapolation_metrics_iter: int = 1  # How often to log metrics
+    rollout_length: int = 200
     viewport_size: int = 12
     
     # Wandb
-    wandb_project: str = "PointTransformer"
+    wandb_project: str = "PointcloudTransformer"
     wandb_dir: str = "/work/williamb/gnode_wandb"
 
     @property
@@ -59,5 +59,5 @@ class Config:
         return os.path.join(self.model_checkpoint_dir, self.dataset_name)
 
     # Add these to your existing Config class
-    noise_enabled: bool = False
+    noise_enabled: bool = True
     noise_scale_factor: float = 0.01  # 1% of data std
